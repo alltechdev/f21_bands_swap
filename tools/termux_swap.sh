@@ -1,10 +1,10 @@
 #!/system/bin/sh
 set -e
 
-REGION="${1:-}"
-case "$REGION" in
-    us|stock) ;;
-    *) echo "usage: $0 {us|stock}" >&2; exit 1 ;;
+case "${1:-}" in
+    --us)    REGION=us ;;
+    --stock) REGION=stock ;;
+    *) echo "usage: $0 {--us|--stock}" >&2; exit 1 ;;
 esac
 
 REPO_RAW="${F21_BANDS_RAW:-https://raw.githubusercontent.com/alltechdev/f21_bands_swap/feat/termux-one-liner}"
@@ -15,7 +15,6 @@ mkdir -p "$WORK" || {
     exit 1
 }
 
-export PATH="/system/bin:/system/xbin:/product/bin:/vendor/bin:$PATH"
 unset LD_PRELOAD
 
 PKG=/data/data/com.termux/files/usr/bin/pkg
