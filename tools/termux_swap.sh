@@ -17,10 +17,13 @@ mkdir -p "$WORK" || {
 
 unset LD_PRELOAD
 
-PKG=/data/data/com.termux/files/usr/bin/pkg
-if [ -x "$PKG" ]; then
+APT=/data/data/com.termux/files/usr/bin/apt
+if [ -x "$APT" ]; then
     echo "[1/7] Installing Termux packages curl tar xz-utils..."
-    "$PKG" install -y curl tar xz-utils
+    DEBIAN_FRONTEND=noninteractive "$APT" install -y \
+        -o Dpkg::Options::=--force-confold \
+        -o Dpkg::Options::=--force-confdef \
+        curl tar xz-utils </dev/null
 fi
 
 for tool in curl tar xz; do
