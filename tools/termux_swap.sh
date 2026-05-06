@@ -1,10 +1,10 @@
 #!/system/bin/sh
 set -e
 
-case "${1:-}" in
-    --us)    REGION=us ;;
-    --stock) REGION=stock ;;
-    *) echo "usage: $0 {--us|--stock}" >&2; exit 1 ;;
+REGION="${1:-}"
+case "$REGION" in
+    us|stock) ;;
+    *) echo "usage: $0 {us|stock}" >&2; exit 1 ;;
 esac
 
 REPO_RAW="${F21_BANDS_RAW:-https://raw.githubusercontent.com/alltechdev/f21_bands_swap/feat/termux-one-liner}"
