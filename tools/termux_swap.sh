@@ -17,21 +17,26 @@ mkdir -p "$WORK" || {
 
 unset LD_PRELOAD
 
-APT=/data/data/com.termux/files/usr/bin/apt
-if [ -x "$APT" ]; then
-    echo "[1/7] Installing Termux packages curl tar xz-utils..."
-    DEBIAN_FRONTEND=noninteractive "$APT" install -y \
-        -o Dpkg::Options::=--force-confold \
-        -o Dpkg::Options::=--force-confdef \
-        curl tar xz-utils </dev/null
-fi
+NEED=""
+command -v curl >/dev/null 2>&1 || NEED="$NEED curl"
+command -v tar  >/dev/null 2>&1 || NEED="$NEED tar"
+command -v xz   >/dev/null 2>&1 || NEED="$NEED xz-utils"
 
-for tool in curl tar xz; do
-    command -v "$tool" >/dev/null 2>&1 || {
-        echo "ERROR: $tool not in PATH. Run from Termux: pkg install -y curl tar xz-utils" >&2
+if [ -n "$NEED" ]; then
+    APT=/data/data/com.termux/files/usr/bin/apt
+    if [ -x "$APT" ]; then
+        echo "[1/7] Installing missing Termux packages:$NEED"
+        DEBIAN_FRONTEND=noninteractive "$APT" install -y \
+            -o Dpkg::Options::=--force-confold \
+            -o Dpkg::Options::=--force-confdef \
+            $NEED </dev/null
+    else
+        echo "ERROR: missing tools$NEED and apt not available. Install them first." >&2
         exit 1
-    }
-done
+    fi
+else
+    echo "[1/7] Termux packages curl/tar/xz already present, skipping install."
+fi
 
 SU=""
 for p in /product/bin/su /system/bin/su /system/xbin/su /sbin/su /vendor/bin/su; do
