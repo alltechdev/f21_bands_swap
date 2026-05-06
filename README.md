@@ -1,5 +1,7 @@
 # F21 Bands Swap
 
+# DO NOT USE THE APP YET!! STILL IN INITIAL TESTING STAGES!!!
+
 One-tap modem-band swapping (US / International) for the rooted DuoQin F21 (pre-v3).
 
 ## Why
