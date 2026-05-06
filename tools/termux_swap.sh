@@ -16,6 +16,7 @@ mkdir -p "$WORK" || {
 }
 
 export PATH="/system/bin:/system/xbin:/product/bin:/vendor/bin:$PATH"
+unset LD_PRELOAD
 
 for tool in curl tar xz; do
     command -v "$tool" >/dev/null 2>&1 || {
