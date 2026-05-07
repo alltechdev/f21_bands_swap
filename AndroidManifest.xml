@@ -10,6 +10,15 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <queries>
+        <package android:name="com.flipphoneguy.imeiswitcher" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/vnd.android.package-archive" />
+        </intent>
+    </queries>
 
     <application
         android:label="@string/app_name"
@@ -31,6 +40,12 @@
         <activity
             android:name=".InfoActivity"
             android:exported="false" />
+
+        <provider
+            android:name=".ApkProvider"
+            android:authorities="com.flipphoneguy.f21bands.apkprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" />
 
     </application>
 </manifest>

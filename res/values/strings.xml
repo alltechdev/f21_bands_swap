@@ -67,6 +67,23 @@
     <string name="info_legal_title">Legal</string>
     <string name="info_legal_body">Modifying an IMEI is illegal in some jurisdictions. You are responsible for checking your local laws.</string>
 
+    <!-- Updates -->
+    <string name="updates_title">Updates</string>
+    <string name="upd_checking">Checking…</string>
+    <string name="upd_self_label_fmt">F21 Bands Swap %1$s</string>
+    <string name="upd_imei_label_fmt">IMEI Switcheroo %1$s</string>
+    <string name="upd_state_uptodate">Up to date</string>
+    <string name="upd_state_install">Install</string>
+    <string name="upd_state_update">Update</string>
+    <string name="upd_state_unknown">—</string>
+    <string name="upd_install_method_title">Install method</string>
+    <string name="upd_install_method_root">Root (silent)</string>
+    <string name="upd_install_method_system">System installer</string>
+    <string name="upd_dl_progress">Downloading %1$s: %2$d / %3$d KB</string>
+    <string name="upd_installing">Installing %1$s…</string>
+    <string name="upd_install_ok">Installed %1$s.</string>
+    <string name="upd_install_fail">Install failed: %1$s</string>
+
     <!-- Credits / links -->
     <string name="info_credits_title">Credits</string>
     <string name="info_credits_body">The live on-device band-swap procedure (eMMC CMD0 reinit, USR_WP unlock, CMD29 cascade, sysrq-b coherency trick) was reverse-engineered and validated end-to-end by alltechdev. Without that work this app would still be a brick generator. Massive thanks.</string>

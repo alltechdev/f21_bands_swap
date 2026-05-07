@@ -6,6 +6,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -23,11 +25,23 @@ public final class MainActivity extends Activity {
 
     private static final int REQ_PICK = 100;
 
+    private static final String SELF_REPO  = "flipphoneguy/f21_bands_swap";
+    private static final String SELF_ASSET = "F21BandsSwap.apk";
+    private static final String IMEI_REPO    = "flipphoneguy/mtk-imei-switcheroo-app";
+    private static final String IMEI_ASSET   = "ImeiSwitcheroo.apk";
+    private static final String IMEI_PACKAGE = "com.flipphoneguy.imeiswitcher";
+
     private TextView statusRoot, statusRegion, statusBlob;
     private LinearLayout cardGate, cardAction, cardError;
     private TextView gateExplain, dlStatus, manualUrl, errorMsg;
     private ProgressBar dlProgress;
     private Button btnDownload, btnPick, btnCopyUrl, btnSwap;
+
+    private TextView updSelfLabel, updImeiLabel, updStatus;
+    private Button updSelfBtn, updImeiBtn;
+    private ProgressBar updProgress;
+    private Updater.Release latestSelf, latestImei;
+    private boolean updateBusy;
 
     private boolean rooted;
     private String currentRegion = Constants.REGION_UNKNOWN;
@@ -81,7 +95,21 @@ public final class MainActivity extends Activity {
             @Override public void onClick(View v) { confirmSwap(); }
         });
 
+        updSelfLabel = findViewById(R.id.upd_self_label);
+        updImeiLabel = findViewById(R.id.upd_imei_label);
+        updStatus    = findViewById(R.id.upd_status);
+        updSelfBtn   = findViewById(R.id.upd_self_btn);
+        updImeiBtn   = findViewById(R.id.upd_imei_btn);
+        updProgress  = findViewById(R.id.upd_progress);
+        updSelfBtn.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { promptInstall(true); }
+        });
+        updImeiBtn.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { promptInstall(false); }
+        });
+
         refreshState();
+        checkUpdates();
     }
 
     @Override
@@ -370,6 +398,186 @@ public final class MainActivity extends Activity {
                                 .setPositiveButton(android.R.string.ok, null)
                                 .show();
                             refreshState();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    // ─── Updates ──────────────────────────────────────────────────────────
+
+    private void checkUpdates() {
+        if (updateBusy) return;
+        final String selfInstalled = installedVersion(getPackageName());
+        final String imeiInstalled = installedVersion(IMEI_PACKAGE);
+
+        updSelfBtn.setVisibility(View.GONE);
+        updImeiBtn.setVisibility(View.GONE);
+        updStatus.setVisibility(View.GONE);
+        updProgress.setVisibility(View.GONE);
+        updSelfLabel.setText(getString(R.string.upd_self_label_fmt,
+            selfInstalled != null ? "v" + selfInstalled : getString(R.string.upd_state_unknown)));
+        updImeiLabel.setText(getString(R.string.upd_imei_label_fmt,
+            imeiInstalled != null ? "v" + imeiInstalled : "(not installed)"));
+
+        new Thread(new Runnable() {
+            @Override public void run() {
+                final Updater.Release[] selfBox = new Updater.Release[1];
+                try { selfBox[0] = Updater.fetchLatest(SELF_REPO, SELF_ASSET); } catch (Exception ignored) {}
+                final Updater.Release[] imeiBox = new Updater.Release[1];
+                try { imeiBox[0] = Updater.fetchLatest(IMEI_REPO, IMEI_ASSET); } catch (Exception ignored) {}
+
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        latestSelf = selfBox[0];
+                        latestImei = imeiBox[0];
+                        renderUpdateRow(true,  selfInstalled, latestSelf, updSelfLabel, updSelfBtn);
+                        renderUpdateRow(false, imeiInstalled, latestImei, updImeiLabel, updImeiBtn);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void renderUpdateRow(boolean isSelf, String installed, Updater.Release latest,
+                                  TextView label, Button btn) {
+        int labelFmt = isSelf ? R.string.upd_self_label_fmt : R.string.upd_imei_label_fmt;
+        if (latest == null) {
+            label.setText(getString(labelFmt, installed != null ? "v" + installed : "(not installed)"));
+            btn.setVisibility(View.GONE);
+            return;
+        }
+        if (installed == null) {
+            label.setText(getString(labelFmt, "(not installed → " + latest.tag + ")"));
+            btn.setText(R.string.upd_state_install);
+            btn.setEnabled(true);
+            btn.setVisibility(View.VISIBLE);
+        } else if (Updater.isNewer(latest.tag, installed)) {
+            label.setText(getString(labelFmt, "v" + installed + " → " + latest.tag));
+            btn.setText(R.string.upd_state_update);
+            btn.setEnabled(true);
+            btn.setVisibility(View.VISIBLE);
+        } else {
+            label.setText(getString(labelFmt, "v" + installed));
+            btn.setText(R.string.upd_state_uptodate);
+            btn.setEnabled(false);
+            btn.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private String installedVersion(String packageName) {
+        try {
+            PackageInfo pi = getPackageManager().getPackageInfo(packageName, 0);
+            return pi.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            return null;
+        }
+    }
+
+    private void promptInstall(final boolean isSelf) {
+        if (updateBusy) return;
+        final Updater.Release rel = isSelf ? latestSelf : latestImei;
+        if (rel == null || rel.downloadUrl == null || rel.downloadUrl.isEmpty()) {
+            Toast.makeText(this, "No download URL available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.upd_install_method_title)
+            .setItems(new CharSequence[]{
+                getString(R.string.upd_install_method_root),
+                getString(R.string.upd_install_method_system)
+            }, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int which) {
+                    doDownloadAndInstall(isSelf, which == 0);
+                }
+            })
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show();
+    }
+
+    private void doDownloadAndInstall(final boolean isSelf, final boolean useRoot) {
+        final Updater.Release rel = isSelf ? latestSelf : latestImei;
+        final String name     = isSelf ? "F21 Bands Swap" : "IMEI Switcheroo";
+        final String fileName = isSelf ? "F21BandsSwap.apk" : "ImeiSwitcheroo.apk";
+        final File outFile    = new File(getCacheDir(), fileName);
+
+        updateBusy = true;
+        updSelfBtn.setEnabled(false);
+        updImeiBtn.setEnabled(false);
+        updProgress.setVisibility(View.VISIBLE);
+        updProgress.setMax(100);
+        updProgress.setProgress(0);
+        updStatus.setVisibility(View.VISIBLE);
+        updStatus.setText(getString(R.string.upd_dl_progress, name, 0, 0));
+
+        new Thread(new Runnable() {
+            @Override public void run() {
+                try {
+                    ApkDownloader.download(rel.downloadUrl, outFile, new ApkDownloader.ProgressCallback() {
+                        @Override public void onProgress(final long downloaded, final long total) {
+                            runOnUiThread(new Runnable() {
+                                @Override public void run() {
+                                    int pct = total > 0 ? (int) (downloaded * 100 / total) : 0;
+                                    updProgress.setProgress(pct);
+                                    updStatus.setText(getString(R.string.upd_dl_progress,
+                                        name, downloaded / 1024, total > 0 ? total / 1024 : 0));
+                                }
+                            });
+                        }
+                    });
+                } catch (final Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            updateBusy = false;
+                            updProgress.setVisibility(View.GONE);
+                            updStatus.setText(getString(R.string.upd_install_fail,
+                                e.getMessage() == null ? e.toString() : e.getMessage()));
+                            updSelfBtn.setEnabled(latestSelf != null);
+                            updImeiBtn.setEnabled(latestImei != null);
+                        }
+                    });
+                    return;
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        updProgress.setVisibility(View.GONE);
+                        updStatus.setText(getString(R.string.upd_installing, name));
+                    }
+                });
+
+                if (useRoot) {
+                    AppInstaller.installSilently(outFile, new AppInstaller.Callback() {
+                        @Override public void onResult(final boolean ok, final String msg) {
+                            runOnUiThread(new Runnable() {
+                                @Override public void run() {
+                                    updateBusy = false;
+                                    if (ok) {
+                                        updStatus.setText(getString(R.string.upd_install_ok, name));
+                                        checkUpdates();
+                                    } else {
+                                        updStatus.setText(getString(R.string.upd_install_fail, msg));
+                                        updSelfBtn.setEnabled(latestSelf != null);
+                                        updImeiBtn.setEnabled(latestImei != null);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            updateBusy = false;
+                            try {
+                                AppInstaller.installViaSystem(MainActivity.this, outFile);
+                                updStatus.setVisibility(View.GONE);
+                            } catch (Exception e) {
+                                updStatus.setText(getString(R.string.upd_install_fail,
+                                    e.getMessage() == null ? e.toString() : e.getMessage()));
+                            }
+                            updSelfBtn.setEnabled(latestSelf != null);
+                            updImeiBtn.setEnabled(latestImei != null);
                         }
                     });
                 }
