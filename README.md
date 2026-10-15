@@ -4,58 +4,13 @@ One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3
 
 ## Compatibility
 
-**F21 support is for rooted DuoQin F21 prior to v3.** For Tiq M5 support on this branch, see below. v3 has a red charging port and serial number prefix `F21PMQC25`; running this on v3 will brick the modem (the app refuses to flash when the live bands match neither known hash; the override described under Recovery bypasses that check, so treat it accordingly). Magisk is required (the app needs root and `su -mm` for the MMC ioctls). If you're not sure which revision you have, do not use this app.
+**EXCLUSIVELY for rooted DuoQin F21 prior to v3.** v3 has a red charging port and serial number prefix `F21PMQC25`; running this on v3 will brick the modem (the app refuses to flash when the live bands match neither known hash; the override described under Recovery bypasses that check, so treat it accordingly). Magisk is required (the app needs root and `su -mm` for the MMC ioctls). If you're not sure which revision you have, do not use this app.
 
-## M5 support (m5-support branch)
+## Tiq M5
 
-The app automatically identifies F21 Pro or Tiq M5 and selects the appropriate
-modem hash, download URL, and backup filenames. Generic ROM identifiers can
-also be identified as F21 by an original known live modem hash, preserving the
-original hash-based detection. Conflicting identifiers remain blocked; unknown
-identifiers without a known F21 modem hash remain blocked. The connected M5 reports manufacturer `M5`, brand
-`alps`, model `M5`, device `k61v1_64_bsp`, and product `vnd_k61v1_64_bsp`.
+The app also supports **Tiq M5 EU ↔ USA** with Magisk root and active slot `_a`. It automatically selects the device-specific bands and uses the same backup and flashing flow as F21. Both directions have been successfully user-tested on M5.
 
-M5 supports **EU ↔ USA, with active slot `_a`**. The supplied EU and USA
-modem hashes are recognized automatically and select the other region as the
-target, using the same region-selection logic as F21. An unrecognized modem
-still requires the existing override confirmation.
-
-The M5 uses the same backup, archive validation, eMMC unlock, streaming flash,
-flush, and reboot logic as F21. Both backup and no-backup buttons retain their
-existing behavior. EU backups use `bands_m5_stock.tar.xz`, and USA backups use
-`bands_m5_us.tar.xz`. These are automatically available for the return swap,
-including the device identifiers saved in the backup. An overridden unknown
-modem uses `bands_m5_unknown.tar.xz`, for manual recovery only, as on F21.
-F21 storage and download URLs remain unchanged.
-
-The same **Magisk `su` / `su -mm` requirements** apply. An ADB-only privileged
-shell does not provide app root access. No private root command or credential
-is embedded in this app.
-
-**Hardware validation:** on 2026-10-15, the user reported successful flashing
-with this app on a Tiq M5 in both directions: EU → USA and USA → EU. This
-confirms successful live flashing on the tested device and setup; it does not
-establish compatibility with every M5 firmware or root configuration.
-
-[`bands/m5/us.tar.xz`](bands/m5/us.tar.xz) was prepared from the supplied USA
-`tiqstuffs2.zip`. The original 41,252,016-byte `md1img-verified.img` is renamed
-`md1img_a.bin` and zero-padded to the measured 104,857,600-byte partition
-capacity. The three NV images are unchanged. The archive uses the same four
-entry names, order, and sizes as F21, retaining existing exact-size checks.
-The padded modem SHA-256 is
-`c4cee657969f9233e54777192f33297a45c6d456ad7663f277315f9b8cc3a971`.
-[`bands/m5/stock.tar.xz`](bands/m5/stock.tar.xz) contains the supplied EU
-partitions unchanged. The supplied full EU modem SHA-256 is
-`ea33734b18490bca7026755c22e05e3d1ce209f9137ae060c3ff3e9436230a52`.
-The measured layout is in [`docs/m5_partition_layout.json`](docs/m5_partition_layout.json).
-
-Archive import and download use the detected model’s hash, preventing F21/M5
-bundle confusion. Before flashing, the shared engine revalidates the entire
-archive and its canonical order; M5 also checks the active slot. A short modem read is an error, not an unknown hash.
-
-After building, run `bash tests/run.sh` (set `ANDROID_JAR` if needed) for model
-classification, bundle isolation, bidirectional target, backup naming, and malformed
-archive checks. Tests use a JVM identity fixture and never access a phone.
+M5 bundles: [USA](bands/m5/us.tar.xz) · [EU](bands/m5/stock.tar.xz). Partition layout and bundle details: [technical reference](docs/m5_partition_layout.json).
 
 ## What it does
 
@@ -83,6 +38,8 @@ Open the app, accept the root prompt, follow the on-screen flow:
 
 ## Run from Termux (no APK, no host PC)
 
+**F21 only:** the Termux wrapper downloads F21 bundles. Use the app for M5.
+
 If you'd rather skip the APK and run the swap from an on-device Termux shell, [`tools/termux_swap.sh`](tools/termux_swap.sh) is a one-shot wrapper that downloads the target region's blob, `mmc_probe`, and `tools/swap.sh`, stages them via `su`, and invokes the same flash procedure the app uses. From Termux:
 
 ```sh
@@ -94,6 +51,8 @@ Fully written and tested by [alltechdev](https://github/flipphoneguy/alltechdev)
 Substitute `stock` for `us` to flash the other direction. The script auto-installs any missing Termux packages (`curl`, `tar`, `xz-utils`) and triggers the Magisk grant prompt up front before the ~21 MiB download so you click Allow once and walk away. Same post-flash step as the APK path: re-provision IMEI / BT MAC / WiFi MAC with [mtk-imei-switcheroo-app](https://github.com/flipphoneguy/mtk-imei-switcheroo-app). Unlike the app, this path does **not** back up your current bands before flashing — if you want a backup, dump the four partitions yourself first (see Recovery).
 
 ## Recovery
+
+**M5 backups:** stored in the same app-private directory below as `bands_m5_us.tar.xz` (USA) or `bands_m5_stock.tar.xz` (EU). Unknown-band backups use `bands_m5_unknown.tar.xz` and require manual recovery.
 
 The pre-flash backup blob lives at `/data/data/com.flipphoneguy.f21bands/files/bands_<region>.tar.xz`. If a flash fails or you want to revert manually, pull it, `tar -xJf`, and manually flash the four `.bin` files to their partitions from a computer (fastboot or recovery shell). The in-app "swap back" path runs the same flow with the previously-backed-up region as the new target.
 
@@ -125,6 +84,8 @@ Requires `aapt2`, `ecj`, `d8`, `apksigner`, `zip` (e.g. `pkg install aapt2 ecj d
 On a desktop Linux machine the same script works with an Android SDK (build-tools + a platform) and either a JDK or Android Studio's bundled JBR: it finds the SDK via `ANDROID_SDK_ROOT`, `ANDROID_HOME`, or `~/Android/Sdk`, uses the platform `android.jar` in place of both Termux jars, and falls back from `ecj` to `javac`. `ANDROID_JAR`, `FRAMEWORK_RES`, and `KEYSTORE` can be overridden in the environment. The first run downloads `xz-1.9.jar` from Maven Central into `libs/`.
 
 For more on build, check out my [app building template](https://github.com/flipphoneguy/app-template)
+
+After building, run `bash tests/run.sh` to check device detection, bundle validation, and region selection. Set `ANDROID_JAR` if your SDK is not at the default test path. Tests require `javac` and do not access a phone.
 
 ## Legal
 
