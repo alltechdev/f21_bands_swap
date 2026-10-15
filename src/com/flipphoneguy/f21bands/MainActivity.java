@@ -52,6 +52,8 @@ public final class MainActivity extends Activity {
         super.onCreate(saved);
         setContentView(R.layout.activity_main);
 
+        // Session-only, like overrideTarget.
+        Constants.setDeviceOverride(null);
         TextView statusDevice = findViewById(R.id.status_device);
         statusDevice.setText(getString(R.string.status_device,
             DeviceDetector.label(DeviceDetector.detect())));
@@ -102,7 +104,7 @@ public final class MainActivity extends Activity {
             @Override public void onClick(View v) { confirmSwapNoBackup(); }
         });
         btnOverride.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { confirmOverride(); }
+            @Override public void onClick(View v) { chooseOverrideTarget(); }
         });
 
         refreshState();
@@ -249,39 +251,50 @@ public final class MainActivity extends Activity {
 
     // ─── Unknown-bands override ───────────────────────────────────────────
 
-    private void confirmOverride() {
+    private void chooseOverrideTarget() {
+        final DeviceDetector.Model[] models = {
+            DeviceDetector.Model.F21, DeviceDetector.Model.F21,
+            DeviceDetector.Model.M5, DeviceDetector.Model.M5,
+        };
+        final String[] regions = {
+            Constants.REGION_US, Constants.REGION_STOCK,
+            Constants.REGION_US, Constants.REGION_STOCK,
+        };
+        String[] labels = new String[regions.length];
+        for (int i = 0; i < regions.length; i++) {
+            labels[i] = getString(R.string.override_item, DeviceDetector.label(models[i]),
+                Constants.prettyRegion(regions[i], models[i] == DeviceDetector.Model.M5));
+        }
         new AlertDialog.Builder(this)
-            .setTitle(R.string.override_title)
-            .setMessage(Constants.isM5() ? R.string.m5_override_warn : R.string.override_warn)
-            .setPositiveButton(R.string.btn_override_confirm, new DialogInterface.OnClickListener() {
-                @Override public void onClick(DialogInterface d, int w) { chooseOverrideTarget(); }
+            .setTitle(R.string.override_pick_title)
+            .setItems(labels, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int which) {
+                    confirmOverride(models[which], regions[which]);
+                }
             })
             .setNegativeButton(R.string.btn_cancel, null)
             .show();
     }
 
-    private void chooseOverrideTarget() {
-        final String[] regions = { Constants.REGION_US, Constants.REGION_STOCK };
-        String[] labels = new String[regions.length];
-        for (int i = 0; i < regions.length; i++) {
-            labels[i] = getString(R.string.override_item, Constants.prettyRegion(regions[i]));
-        }
+    private void confirmOverride(final DeviceDetector.Model model, final String target) {
         new AlertDialog.Builder(this)
-            .setTitle(R.string.override_pick_title)
-            .setItems(labels, new DialogInterface.OnClickListener() {
-                @Override public void onClick(DialogInterface d, int which) { applyOverride(regions[which]); }
+            .setTitle(R.string.override_title)
+            .setMessage(model == DeviceDetector.Model.M5 ? R.string.m5_override_warn : R.string.override_warn)
+            .setPositiveButton(R.string.btn_override_confirm, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int w) { applyOverride(model, target); }
             })
             .setNegativeButton(R.string.btn_cancel, null)
             .show();
     }
 
     /**
-     * Treats {@code target} as the region to flash while the live bands stay
-     * "unknown". Download/pick/swap then run exactly as they would for a
-     * recognised device; a with-backup swap saves the current bands as
-     * bands_unknown.tar.xz.
+     * Treats {@code target} on {@code model} as the bands to flash while the
+     * live bands stay "unknown". Download/pick/swap then run exactly as they
+     * would for a recognised device; a with-backup swap saves the current
+     * bands as bands_unknown.tar.xz (bands_m5_unknown.tar.xz on M5).
      */
-    private void applyOverride(String target) {
+    private void applyOverride(DeviceDetector.Model model, String target) {
+        Constants.setDeviceOverride(model);
         overrideTarget = target;
         otherRegion = target;
         File f = BlobLoader.blobFile(this, target);

@@ -73,8 +73,17 @@ public final class Constants {
     public static final String M5_EU_MD1IMG_SHA256 =
         "ea33734b18490bca7026755c22e05e3d1ce209f9137ae060c3ff3e9436230a52";
 
+    /** Device picked through the unknown-bands override, or null to use DeviceDetector. */
+    private static volatile DeviceDetector.Model deviceOverride;
+
+    public static void setDeviceOverride(DeviceDetector.Model model) {
+        deviceOverride = model;
+    }
+
     public static boolean isM5() {
-        return DeviceDetector.detect() == DeviceDetector.Model.M5;
+        DeviceDetector.Model model = deviceOverride;
+        if (model == null) model = DeviceDetector.detect();
+        return model == DeviceDetector.Model.M5;
     }
 
     public static String regionForHash(String hash) {
@@ -102,8 +111,12 @@ public final class Constants {
     }
 
     public static String prettyRegion(String region) {
+        return prettyRegion(region, isM5());
+    }
+
+    public static String prettyRegion(String region, boolean m5) {
         if (REGION_US.equals(region)) return "US";
-        if (REGION_STOCK.equals(region)) return isM5() ? "EU" : "stock";
+        if (REGION_STOCK.equals(region)) return m5 ? "EU" : "stock";
         return "unknown";
     }
 }

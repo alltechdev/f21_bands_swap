@@ -56,7 +56,7 @@ case "$JAVAC" in
         ;;
 esac
 
-APK_OUT="F21BandsSwap.apk"
+APK_OUT="BandsSwap.apk"
 BUILD_DIR="build"
 LIBS_DIR="libs"
 
@@ -110,7 +110,7 @@ if [ ! -f "$XZ_JAR" ]; then
 fi
 
 echo "════════════════════════════════════"
-echo "  Building F21BandsSwap v${VERSION_NAME} (code ${VERSION_CODE})"
+echo "  Building BandsSwap v${VERSION_NAME} (code ${VERSION_CODE})"
 echo "════════════════════════════════════"
 echo "  javac: $JAVAC"
 echo "  android.jar: $ANDROID_JAR"

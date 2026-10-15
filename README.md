@@ -1,4 +1,4 @@
-# F21 Bands Swap
+# Bands Swap
 
 One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3, MT6761) and the TIQ Mini M5. No fastboot, no recovery, no host PC, no per-power-cycle limit. Backs up the live region before flashing the target region, then sysrq-reboots the device with the new bands live.
 
@@ -23,7 +23,11 @@ Supports **EU ↔ USA** with Magisk root. The app detects the model and current 
 
 ## Credits
 
-The on-device live-flash flow this app ships was reverse-engineered, validated end-to-end, and documented by [alltechdev](https://github.com/alltechdev) in [`docs/live_band_swap_solution.md`](docs/live_band_swap_solution.md). The four primitives that make it work — CMD0 GO_IDLE_STATE to refresh the eMMC's per-power-cycle CMD29 honor quota, CMD6 SWITCH on `EXT_CSD[171]` to flip `US_PWR_WP_EN`, the settle delay between SWITCH and CMD29 to dodge the silent-no-op race, and the `sysrq-b` reboot to skip the ext4 shutdown sync that would otherwise clobber the writes — are alltechdev's findings. This app is the wrapper; the engineering is theirs.
+The on-device live-flash flow this app ships was reverse-engineered, validated end-to-end, and documented by [alltechdev](https://github.com/alltechdev) (ars18) in [`docs/live_band_swap_solution.md`](docs/live_band_swap_solution.md). The four primitives that make it work — CMD0 GO_IDLE_STATE to refresh the eMMC's per-power-cycle CMD29 honor quota, CMD6 SWITCH on `EXT_CSD[171]` to flip `US_PWR_WP_EN`, the settle delay between SWITCH and CMD29 to dodge the silent-no-op race, and the `sysrq-b` reboot to skip the ext4 shutdown sync that would otherwise clobber the writes — are alltechdev's findings. This app is the wrapper; the engineering is theirs.
+
+Tiq M5 support (device detection, the M5 bundles, and the partition layout in [`docs/m5_partition_layout.md`](docs/m5_partition_layout.md)) is also entirely alltechdev's work.
+
+Thanks to farrikt for testing.
 
 ## Install
 
@@ -48,7 +52,7 @@ If you'd rather skip the APK and run the swap from an on-device Termux shell, [`
 curl -fsSL "https://raw.githubusercontent.com/flipphoneguy/f21_bands_swap/tools/termux_swap.sh" | bash -s us
 ```
 
-Fully written and tested by [alltechdev](https://github/flipphoneguy/alltechdev)
+Fully written and tested by [alltechdev](https://github.com/alltechdev)
 
 Substitute `stock` for `us` to flash the other direction. The script auto-installs any missing Termux packages (`curl`, `tar`, `xz-utils`) and triggers the Magisk grant prompt up front before the ~21 MiB download so you click Allow once and walk away. Same post-flash step as the APK path: re-provision IMEI / BT MAC / WiFi MAC with [mtk-imei-switcheroo-app](https://github.com/flipphoneguy/mtk-imei-switcheroo-app). Unlike the app, this path does **not** back up your current bands before flashing — if you want a backup, dump the four partitions yourself first (see Recovery).
 
@@ -56,7 +60,7 @@ Substitute `stock` for `us` to flash the other direction. The script auto-instal
 
 The pre-flash backup blob lives at `/data/data/com.flipphoneguy.f21bands/files/bands_<region>.tar.xz`. If a flash fails or you want to revert manually, pull it, `tar -xJf`, and manually flash the four `.bin` files to their partitions from a computer (fastboot or recovery shell). The in-app "swap back" path runs the same flow with the previously-backed-up region as the new target.
 
-**Unknown bands override.** If the live `md1img_a` matches neither the US nor the stock hash, the app shows a warning instead of the swap buttons. The warning has an override: confirm it, pick US or stock, and the normal download / pick / swap flow runs for that target. The hash is the app's only compatibility check, so the override removes the v3 protection; use it only when you are sure of the hardware. A with-backup swap in that state saves the current bands as `bands_unknown.tar.xz`, which the app cannot flash back itself but which you can restore manually as above.
+**Unknown bands override.** If the live `md1img_a` matches neither the US nor the stock hash, the app shows a warning instead of the swap buttons. The warning has an override: pick the device and bands to flash (F21 US or stock, M5 US or EU), confirm the warning for that device, and the normal download / pick / swap flow runs for that target. The hash is the app's only compatibility check, so the override removes the v3 protection; use it only when you are sure of the hardware. A with-backup swap in that state saves the current bands as `bands_unknown.tar.xz`, which the app cannot flash back itself but which you can restore manually as above.
 
 **M5 backup filenames:** `bands_m5_us.tar.xz` (USA), `bands_m5_stock.tar.xz` (EU), or `bands_m5_unknown.tar.xz` (unknown bands). They use the same directory and recovery procedure described above.
 

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">F21 Bands</string>
+    <string name="app_name">Bands Swap</string>
 
     <!-- Header / status -->
-    <string name="header_title">F21 Bands</string>
+    <string name="header_title">Bands Swap</string>
     <string name="status_root_yes">root: yes</string>
     <string name="status_root_no">root: NO — app needs Magisk</string>
     <string name="status_region_us">current bands: US</string>
@@ -70,13 +70,13 @@
     <string name="btn_override">Override — flash anyway</string>
     <string name="override_title">Flash over unknown bands?</string>
     <string name="override_warn">The md1img_a hash is the app\'s ONLY check that this is a pre-v3 F21 Pro with unmodified bands. It matched neither US nor stock, so the app cannot tell what is on the modem right now.\n\nIf this is a v3 (RED charging port, serial number starting F21PMQC25), flashing WILL soft-brick the modem. Continue only if you are certain this is a pre-v3 device and you accept that risk.\n\nIf you swap with backup, the current bands are saved to app storage as bands_unknown.tar.xz. The app cannot flash that backup back by itself; it is there for manual recovery (see the README).</string>
-    <string name="btn_override_confirm">I understand the risk — choose bands</string>
+    <string name="btn_override_confirm">I understand the risk</string>
     <string name="override_pick_title">Which bands do you want to flash?</string>
-    <string name="override_item">%1$s bands</string>
+    <string name="override_item">%1$s: %2$s bands</string>
     <string name="err_swap">Swap failed: %1$s\n\nYour previous bands\' backup is in app storage. See Info for recovery instructions.</string>
 
     <!-- Info screen -->
-    <string name="info_title">F21 Bands — Info</string>
+    <string name="info_title">Bands Swap — Info</string>
     <string name="info_compat_title">Compatibility</string>
     <string name="info_compat_body">Rooted DuoQin F21 prior to v3, and Tiq M5 EU ↔ USA.\n\nv3 has a RED charging port and serial number prefix F21PMQC25 — running this app on v3 will SOFT-BRICK THE MODEM.\n\nIf you\'re not sure, don\'t use this app.</string>
     <string name="info_buttons_title">What the buttons do</string>
@@ -98,18 +98,18 @@
     <string name="imei_install_failed">Install failed: %1$s</string>
 
     <!-- Self-update -->
-    <string name="info_update_app_title">Update F21 Bands</string>
+    <string name="info_update_app_title">Update Bands Swap</string>
     <string name="info_update_app_body">Checks GitHub for a newer release and installs if one exists.</string>
     <string name="btn_update_app">Check for update &amp; install</string>
     <string name="update_app_checking">Checking for updates…</string>
     <string name="update_app_uptodate">Already on the latest version (%1$s).</string>
     <string name="update_app_newer_found">New version %1$s available (you have %2$s) — downloading…</string>
-    <string name="update_app_done">F21 Bands updated.</string>
+    <string name="update_app_done">Bands Swap updated.</string>
     <string name="update_app_failed">Update failed: %1$s</string>
 
     <!-- Credits / links -->
     <string name="info_credits_title">Credits</string>
-    <string name="info_credits_body">The live on-device band-swap procedure (eMMC CMD0 reinit, USR_WP unlock, CMD29 cascade, sysrq-b coherency trick) was reverse-engineered and validated end-to-end by alltechdev. Without that work this app would still be a brick generator. Massive thanks.</string>
+    <string name="info_credits_body">The live on-device band-swap procedure (eMMC CMD0 reinit, USR_WP unlock, CMD29 cascade, sysrq-b coherency trick) was reverse-engineered and validated end-to-end by alltechdev. Without that work this app would still be a brick generator. Tiq M5 support is also entirely alltechdev\'s work. Massive thanks.</string>
 
     <string name="info_links_title">Links</string>
     <string name="info_alltech_label">alltechdev (the real RE work)</string>
