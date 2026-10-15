@@ -9,8 +9,10 @@ One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3
 ## M5 support (m5-support branch)
 
 The app automatically identifies F21 Pro or Tiq M5 and selects the appropriate
-modem hash, download URL, and backup filenames. Unknown or conflicting device
-identifiers are blocked. The connected M5 reports manufacturer `M5`, brand
+modem hash, download URL, and backup filenames. Generic ROM identifiers can
+also be identified as F21 by an original known live modem hash, preserving the
+original hash-based detection. Conflicting identifiers remain blocked; unknown
+identifiers without a known F21 modem hash remain blocked. The connected M5 reports manufacturer `M5`, brand
 `alps`, model `M5`, device `k61v1_64_bsp`, and product `vnd_k61v1_64_bsp`.
 
 M5 supports **EU → USA only, with active slot `_a`**. No EU reference hash is

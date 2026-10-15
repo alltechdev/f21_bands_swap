@@ -129,17 +129,18 @@ public final class MainActivity extends Activity {
                 String detected;
                 String detectErr = null;
                 try {
-                    detected = r && deviceModel != DeviceDetector.Model.UNKNOWN ? RegionDetector.detect() : Constants.REGION_UNKNOWN;
+                    detected = r ? RegionDetector.detect() : Constants.REGION_UNKNOWN;
                 } catch (Exception e) {
                     Log.e(TAG, "region detection failed", e);
                     detected = Constants.REGION_UNKNOWN;
                     detectErr = describe(e);
                 }
+                final DeviceDetector.Model model = DeviceDetector.detect();
                 final String region = detected;
                 final String err = detectErr;
                 cleanupStaleBlob(region);
                 String target = RegionDetector.otherRegion(region);
-                if (target == null && r && deviceModel != DeviceDetector.Model.UNKNOWN
+                if (target == null && r && model != DeviceDetector.Model.UNKNOWN
                         && Constants.REGION_UNKNOWN.equals(region)) {
                     // Live bands unrecognised, but the user picked a target via the override.
                     target = overrideTarget;
@@ -156,6 +157,8 @@ public final class MainActivity extends Activity {
                     @Override public void run() {
                         // A load started while this probe ran; it refreshes when done.
                         if (loadingBlob) return;
+                        deviceModel = model;
+                        statusDevice.setText(getString(R.string.status_device, DeviceDetector.label(model)));
                         rooted = r;
                         currentRegion = region;
                         otherRegion = other;

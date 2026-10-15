@@ -31,7 +31,24 @@ public final class M5SupportTest {
         Build.MODEL = "unknown"; Build.DEVICE = "unknown"; Build.PRODUCT = "unknown";
         check(!Constants.supportsTarget("us"), "unknown device blocked");
         rejected("bands/us.tar.xz");
-        System.out.println("M5/F21 bundle isolation, targets, backups and URL tests passed");
+        // Regression: a generic/custom ROM with the original F21 modem must still work.
+        DeviceDetector.observeLiveModemHash("not-a-known-modem");
+        check(DeviceDetector.detect() == DeviceDetector.Model.UNKNOWN, "unknown modem remains blocked");
+        DeviceDetector.observeLiveModemHash(Constants.US_MD1IMG_SHA256);
+        check(DeviceDetector.detect() == DeviceDetector.Model.F21, "live F21 hash fallback");
+        check(Constants.supportsTarget("stock"), "generic-ROM F21 can restore stock");
+        check("us".equals(BlobLoader.validate(new File("bands/us.tar.xz"))), "generic-ROM F21 bundle");
+        Build.MODEL = "different unknown ROM";
+        check(DeviceDetector.detect() == DeviceDetector.Model.UNKNOWN, "evidence tied to identity");
+        DeviceDetector.observeLiveModemHash(Constants.STOCK_MD1IMG_SHA256);
+        check(DeviceDetector.detect() == DeviceDetector.Model.F21, "stock hash fallback");
+        Build.MANUFACTURER = "M5"; Build.BRAND = "alps"; Build.MODEL = "M5";
+        DeviceDetector.observeLiveModemHash(Constants.US_MD1IMG_SHA256);
+        check(DeviceDetector.detect() == DeviceDetector.Model.M5, "F21 hash cannot override M5 identity");
+        Build.DEVICE = "F21 Pro";
+        DeviceDetector.observeLiveModemHash(Constants.US_MD1IMG_SHA256);
+        check(DeviceDetector.detect() == DeviceDetector.Model.UNKNOWN, "conflict cannot be bypassed by hash");
+        System.out.println("M5/F21 isolation, targets, backups, malformed bundles and F21 identity regression tests passed");
     }
 
     private static void malformed(String firstName, long size) throws Exception {

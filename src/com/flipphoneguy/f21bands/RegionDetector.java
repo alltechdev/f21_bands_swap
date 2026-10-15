@@ -16,6 +16,7 @@ public final class RegionDetector {
         long size = Constants.PARTITION_SIZES[0];
         String device = Constants.PARTITION_DEVICES[0];
         String h = RootRunner.sha256Partition(device, size);
+        DeviceDetector.observeLiveModemHash(h);
         return Constants.regionForHash(h);
     }
 
