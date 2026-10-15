@@ -16,16 +16,6 @@ public final class DeviceDetector {
 
     // Package-private so identification can be tested without Android hardware.
     static Model classify(String manufacturer, String brand, String... identifiers) {
-        return modelForSignals(signals(manufacturer, brand, identifiers));
-    }
-
-    private static Model modelForSignals(int flags) {
-        if (flags == 1) return Model.F21;
-        if (flags == 2) return Model.M5;
-        return Model.UNKNOWN; // No evidence, or contradictory model identifiers.
-    }
-
-    private static int signals(String manufacturer, String brand, String... identifiers) {
         boolean tiq = normalize(manufacturer).equals("tiq")
             || normalize(brand).equals("tiq");
         // Observed on the physical M5: manufacturer M5, brand alps, model M5.
@@ -39,7 +29,8 @@ public final class DeviceDetector {
                 || id.equals("duoqinf21pro");
             m5 |= id.equals("tiqm5") || ((tiq || m5Vendor) && id.equals("m5"));
         }
-        return (f21 ? 1 : 0) | (m5 ? 2 : 0);
+        if (f21 == m5) return Model.UNKNOWN;
+        return f21 ? Model.F21 : Model.M5;
     }
 
     private static String normalize(String value) {
