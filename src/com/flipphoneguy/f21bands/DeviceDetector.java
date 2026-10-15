@@ -14,7 +14,6 @@ public final class DeviceDetector {
                         Build.DEVICE, Build.PRODUCT);
     }
 
-    // Package-private so identification can be tested without Android hardware.
     static Model classify(String manufacturer, String brand, String... identifiers) {
         boolean tiq = normalize(manufacturer).equals("tiq")
             || normalize(brand).equals("tiq");
