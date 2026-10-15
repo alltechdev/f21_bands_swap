@@ -9,11 +9,10 @@ public final class M5SupportTest {
         check(DeviceDetector.detect() == DeviceDetector.Model.M5, "physical M5 identity");
         check(Constants.REGION_US.equals(BlobLoader.validate(new File("bands/m5/us.tar.xz"))), "M5 bundle");
         rejected("bands/us.tar.xz");
-        malformed("nvcfg.bin", 33554432L); // Noncanonical first entry.
+        malformed("nvcfg.bin", 33554432L); // Truncated entry body.
         malformed("md1img_a.bin", 41252016L); // Unpadded modem must fail exact-size validation.
         malformed(null, 0); // Missing all partitions.
         rejected("bands/stock.tar.xz");
-        check(Constants.supportsTarget("us") && Constants.supportsTarget("stock"), "bidirectional targets");
         check("stock".equals(BlobLoader.validate(new File("bands/m5/stock.tar.xz"))), "M5 EU bundle");
         check("stock".equals(RegionDetector.otherRegion("us")), "USA offers EU");
         check("stock".equals(Constants.regionForHash(Constants.M5_EU_MD1IMG_SHA256)), "EU detection");
@@ -28,33 +27,57 @@ public final class M5SupportTest {
         Build.DEVICE = "f21pro"; Build.PRODUCT = "f21pro";
         check(Constants.REGION_US.equals(BlobLoader.validate(new File("bands/us.tar.xz"))), "F21 USA unchanged");
         check(Constants.REGION_STOCK.equals(BlobLoader.validate(new File("bands/stock.tar.xz"))), "F21 stock unchanged");
+        legacyArchiveOrder();
         rejected("bands/m5/us.tar.xz");
         rejected("bands/m5/stock.tar.xz");
-        check(Constants.supportsTarget("stock"), "F21 reverse retained");
         check("stock".equals(RegionDetector.otherRegion("us")), "F21 reverse target");
         check(Constants.blobFileNameForRegion("unknown").equals("bands_unknown.tar.xz"), "F21 backup unchanged");
         check(Constants.urlForRegion("us").equals(Constants.DOWNLOAD_BASE + "us.tar.xz"), "F21 URL unchanged");
+        // Generic/custom ROMs keep the original F21 hash and unknown-band flow.
         Build.MODEL = "unknown"; Build.DEVICE = "unknown"; Build.PRODUCT = "unknown";
-        check(!Constants.supportsTarget("us"), "unknown device blocked");
-        rejected("bands/us.tar.xz");
-        // Regression: a generic/custom ROM with the original F21 modem must still work.
-        DeviceDetector.observeLiveModemHash("not-a-known-modem");
-        check(DeviceDetector.detect() == DeviceDetector.Model.UNKNOWN, "unknown modem remains blocked");
-        DeviceDetector.observeLiveModemHash(Constants.US_MD1IMG_SHA256);
-        check(DeviceDetector.detect() == DeviceDetector.Model.F21, "live F21 hash fallback");
-        check(Constants.supportsTarget("stock"), "generic-ROM F21 can restore stock");
-        check("us".equals(BlobLoader.validate(new File("bands/us.tar.xz"))), "generic-ROM F21 bundle");
-        Build.MODEL = "different unknown ROM";
-        check(DeviceDetector.detect() == DeviceDetector.Model.UNKNOWN, "evidence tied to identity");
-        DeviceDetector.observeLiveModemHash(Constants.STOCK_MD1IMG_SHA256);
-        check(DeviceDetector.detect() == DeviceDetector.Model.F21, "stock hash fallback");
+        check(DeviceDetector.detect() == DeviceDetector.Model.UNKNOWN, "generic identity");
+        check("us".equals(BlobLoader.validate(new File("bands/us.tar.xz"))), "generic-ROM F21 USA bundle");
+        check("stock".equals(Constants.regionForHash(Constants.STOCK_MD1IMG_SHA256)), "generic-ROM F21 stock hash");
+        check("unknown".equals(Constants.regionForHash("unrecognized")), "original unknown-band result");
+        check(RegionDetector.otherRegion("unknown") == null, "unknown-band override remains necessary");
+        check("stock".equals(Constants.prettyRegion("stock")), "F21 stock label unchanged");
         Build.MANUFACTURER = "M5"; Build.BRAND = "alps"; Build.MODEL = "M5";
-        DeviceDetector.observeLiveModemHash(Constants.US_MD1IMG_SHA256);
-        check(DeviceDetector.detect() == DeviceDetector.Model.M5, "F21 hash cannot override M5 identity");
+        check("unknown".equals(Constants.regionForHash(Constants.US_MD1IMG_SHA256)), "M5 rejects F21 hash");
         Build.DEVICE = "F21 Pro";
-        DeviceDetector.observeLiveModemHash(Constants.US_MD1IMG_SHA256);
-        check(DeviceDetector.detect() == DeviceDetector.Model.UNKNOWN, "conflict cannot be bypassed by hash");
-        System.out.println("M5/F21 isolation, targets, backups, malformed bundles and F21 identity regression tests passed");
+        check(DeviceDetector.detect() == DeviceDetector.Model.UNKNOWN, "conflicting identity");
+        check("us".equals(Constants.regionForHash(Constants.US_MD1IMG_SHA256)), "non-M5 retains original F21 hash handling");
+        System.out.println("M5/F21 bundle isolation, bidirectional selection and legacy F21 detection tests passed");
+    }
+
+    // Upstream validates complete archives independently of entry order.
+    // The existing flash-time order check remains in SwapEngine.
+    private static void legacyArchiveOrder() throws Exception {
+        File file = File.createTempFile("f21-reordered-", ".tar.xz");
+        try {
+            try (org.tukaani.xz.XZOutputStream out = new org.tukaani.xz.XZOutputStream(
+                    new java.io.FileOutputStream(file), new org.tukaani.xz.LZMA2Options(0))) {
+                for (int index : new int[] {1, 0, 2, 3}) {
+                    boolean found = false;
+                    try (org.tukaani.xz.XZInputStream in = new org.tukaani.xz.XZInputStream(
+                            new java.io.FileInputStream("bands/us.tar.xz"))) {
+                        TarStream.Entry entry;
+                        while ((entry = TarStream.readHeader(in)) != null) {
+                            if (entry.name.equals(Constants.PARTITION_FILES[index])) {
+                                TarStream.writeHeader(out, entry.name, entry.size);
+                                TarStream.copyBody(in, out, entry.size);
+                                TarStream.writePad(out, entry.size);
+                                found = true;
+                                break;
+                            }
+                            TarStream.copyBody(in, null, entry.size);
+                        }
+                    }
+                    check(found, "source partition exists");
+                }
+                TarStream.writeEnd(out);
+            }
+            check("us".equals(BlobLoader.validate(file)), "original order-independent F21 validation");
+        } finally { file.delete(); }
     }
 
     private static void malformed(String firstName, long size) throws Exception {

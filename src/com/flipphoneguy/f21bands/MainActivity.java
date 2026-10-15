@@ -24,8 +24,7 @@ public final class MainActivity extends Activity {
     private static final String TAG = "F21Bands";
     private static final int REQ_PICK = 100;
 
-    private TextView statusDevice, statusRoot, statusRegion, statusBlob;
-    private DeviceDetector.Model deviceModel = DeviceDetector.Model.UNKNOWN;
+    private TextView statusRoot, statusRegion, statusBlob;
     private LinearLayout cardGate, cardAction, cardError;
     private TextView gateExplain, dlStatus, manualUrl, errorMsg;
     private ProgressBar dlProgress;
@@ -53,9 +52,9 @@ public final class MainActivity extends Activity {
         super.onCreate(saved);
         setContentView(R.layout.activity_main);
 
-        statusDevice = findViewById(R.id.status_device);
-        deviceModel = DeviceDetector.detect();
-        statusDevice.setText(getString(R.string.status_device, DeviceDetector.label(deviceModel)));
+        TextView statusDevice = findViewById(R.id.status_device);
+        statusDevice.setText(getString(R.string.status_device,
+            DeviceDetector.label(DeviceDetector.detect())));
         statusRoot   = findViewById(R.id.status_root);
         statusRegion = findViewById(R.id.status_region);
         statusBlob   = findViewById(R.id.status_blob);
@@ -135,13 +134,11 @@ public final class MainActivity extends Activity {
                     detected = Constants.REGION_UNKNOWN;
                     detectErr = describe(e);
                 }
-                final DeviceDetector.Model model = DeviceDetector.detect();
                 final String region = detected;
                 final String err = detectErr;
                 cleanupStaleBlob(region);
                 String target = RegionDetector.otherRegion(region);
-                if (target == null && r && model != DeviceDetector.Model.UNKNOWN
-                        && Constants.REGION_UNKNOWN.equals(region)) {
+                if (target == null && r && Constants.REGION_UNKNOWN.equals(region)) {
                     // Live bands unrecognised, but the user picked a target via the override.
                     target = overrideTarget;
                 }
@@ -157,8 +154,6 @@ public final class MainActivity extends Activity {
                     @Override public void run() {
                         // A load started while this probe ran; it refreshes when done.
                         if (loadingBlob) return;
-                        deviceModel = model;
-                        statusDevice.setText(getString(R.string.status_device, DeviceDetector.label(model)));
                         rooted = r;
                         currentRegion = region;
                         otherRegion = other;
@@ -222,12 +217,6 @@ public final class MainActivity extends Activity {
         cardAction.setVisibility(View.GONE);
         cardError.setVisibility(View.GONE);
 
-        if (deviceModel == DeviceDetector.Model.UNKNOWN) {
-            errorMsg.setText(R.string.err_unknown_device);
-            btnOverride.setVisibility(View.GONE);
-            cardError.setVisibility(View.VISIBLE);
-            return;
-        }
         if (!rooted) {
             errorMsg.setText(R.string.err_no_root);
             btnOverride.setVisibility(View.GONE);
@@ -293,7 +282,6 @@ public final class MainActivity extends Activity {
      * bands_unknown.tar.xz.
      */
     private void applyOverride(String target) {
-        if (!Constants.supportsTarget(target)) return;
         overrideTarget = target;
         otherRegion = target;
         File f = BlobLoader.blobFile(this, target);

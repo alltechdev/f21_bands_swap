@@ -126,5 +126,4 @@
     <string name="m5_override_warn">Confirm this is a Tiq M5 you intend to swap. Its current modem matches neither the known EU nor USA reference hash.
 
 EU ↔ USA is supported. With unknown current bands, the backup option saves your current partitions for manual recovery; the app cannot identify that unknown backup for automatic restore. Flashing overwrites modem and NV data, including device identifiers.</string>
-    <string name="err_unknown_device">Device model not recognized. Band swapping is disabled. Model detection requires F21 Pro or Tiq M5 Android identifiers.</string>
 </resources>

@@ -9,26 +9,9 @@ public final class DeviceDetector {
 
     private DeviceDetector() {}
 
-    // Session-only evidence from the live modem, never from an imported bundle.
-    private static volatile String verifiedF21Identity;
-
-    private static String identity() {
-        return Build.MANUFACTURER + "|" + Build.BRAND + "|" + Build.MODEL
-            + "|" + Build.DEVICE + "|" + Build.PRODUCT;
-    }
-
-    static void observeLiveModemHash(String hash) {
-        if (Constants.US_MD1IMG_SHA256.equalsIgnoreCase(hash)
-                || Constants.STOCK_MD1IMG_SHA256.equalsIgnoreCase(hash)) {
-            verifiedF21Identity = identity();
-        }
-    }
-
     public static Model detect() {
-        int flags = signals(Build.MANUFACTURER, Build.BRAND, Build.MODEL,
-                            Build.DEVICE, Build.PRODUCT);
-        if (flags == 0 && identity().equals(verifiedF21Identity)) return Model.F21;
-        return modelForSignals(flags);
+        return classify(Build.MANUFACTURER, Build.BRAND, Build.MODEL,
+                        Build.DEVICE, Build.PRODUCT);
     }
 
     // Package-private so identification can be tested without Android hardware.

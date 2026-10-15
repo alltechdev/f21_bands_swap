@@ -83,16 +83,11 @@ public final class Constants {
             if (M5_EU_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_STOCK;
             return REGION_UNKNOWN;
         }
-        if (DeviceDetector.detect() != DeviceDetector.Model.F21) return REGION_UNKNOWN;
+        // Non-M5 devices retain the original F21 hash/override flow, regardless
+        // of Android model identifiers (including custom ROMs).
         if (US_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_US;
         if (STOCK_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_STOCK;
         return REGION_UNKNOWN;
-    }
-
-    public static boolean supportsTarget(String region) {
-        DeviceDetector.Model model = DeviceDetector.detect();
-        return (model == DeviceDetector.Model.F21 || model == DeviceDetector.Model.M5)
-            && (REGION_US.equals(region) || REGION_STOCK.equals(region));
     }
 
     public static String urlForRegion(String region) {
