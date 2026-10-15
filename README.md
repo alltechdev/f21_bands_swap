@@ -10,7 +10,7 @@ One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3
 
 ### Tiq M5
 
-Supports **EU ↔ USA** with Magisk root. The app detects the model and current region, selects the matching bundle, and uses the same backup and flashing procedure as F21. Both directions have been successfully user-tested.
+Supports **EU ↔ USA** with Magisk root. The app detects the model and current region, selects the matching bundle, and uses the same backup and flashing procedure as F21.
 
 ## What it does
 
