@@ -16,12 +16,11 @@ public final class RegionDetector {
         long size = Constants.PARTITION_SIZES[0];
         String device = Constants.PARTITION_DEVICES[0];
         String h = RootRunner.sha256Partition(device, size);
-        if (h.equalsIgnoreCase(Constants.US_MD1IMG_SHA256)) return Constants.REGION_US;
-        if (h.equalsIgnoreCase(Constants.STOCK_MD1IMG_SHA256)) return Constants.REGION_STOCK;
-        return Constants.REGION_UNKNOWN;
+        return Constants.regionForHash(h);
     }
 
     public static String otherRegion(String current) {
+        if (Constants.isM5()) return null; // One-way support; unknown source requires confirmation.
         if (Constants.REGION_US.equals(current)) return Constants.REGION_STOCK;
         if (Constants.REGION_STOCK.equals(current)) return Constants.REGION_US;
         return null;

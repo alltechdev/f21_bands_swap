@@ -152,7 +152,7 @@ aapt2 link \
 echo "[3/5] Compiling Java..."
 find src/ "$BUILD_DIR/gen/" -name "*.java" > "$BUILD_DIR/sources.txt"
 if [ "$JAVAC" = ecj ]; then
-    ecj \
+    ecj -1.8 -proc:none \
         -cp "$ANDROID_JAR:$XZ_JAR" \
         -d "$BUILD_DIR/classes" \
         @"$BUILD_DIR/sources.txt"

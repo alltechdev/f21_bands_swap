@@ -67,12 +67,39 @@ public final class Constants {
     public static final String DOWNLOAD_BASE =
         "https://raw.githubusercontent.com/flipphoneguy/f21_bands_swap/main/bands/";
 
+    public static final String M5_US_MD1IMG_SHA256 =
+        "c4cee657969f9233e54777192f33297a45c6d456ad7663f277315f9b8cc3a971";
+
+    public static boolean isM5() {
+        return DeviceDetector.detect() == DeviceDetector.Model.M5;
+    }
+
+    public static String regionForHash(String hash) {
+        if (isM5()) {
+            return M5_US_MD1IMG_SHA256.equalsIgnoreCase(hash) ? REGION_US : REGION_UNKNOWN;
+        }
+        if (DeviceDetector.detect() != DeviceDetector.Model.F21) return REGION_UNKNOWN;
+        if (US_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_US;
+        if (STOCK_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_STOCK;
+        return REGION_UNKNOWN;
+    }
+
+    public static boolean supportsTarget(String region) {
+        DeviceDetector.Model model = DeviceDetector.detect();
+        return (model == DeviceDetector.Model.F21 && (REGION_US.equals(region) || REGION_STOCK.equals(region)))
+            || (model == DeviceDetector.Model.M5 && REGION_US.equals(region));
+    }
+
     public static String urlForRegion(String region) {
+        if (isM5()) {
+            if (!REGION_US.equals(region)) return "";
+            return "https://raw.githubusercontent.com/alltechdev/f21_bands_swap/m5-support/bands/m5/us.tar.xz";
+        }
         return DOWNLOAD_BASE + region + ".tar.xz";
     }
 
     public static String blobFileNameForRegion(String region) {
-        return "bands_" + region + ".tar.xz";
+        return "bands_" + (isM5() ? "m5_" : "") + region + ".tar.xz";
     }
 
     public static String prettyRegion(String region) {

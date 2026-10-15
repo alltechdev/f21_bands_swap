@@ -54,9 +54,9 @@ public final class RootRunner {
         Process p = Runtime.getRuntime().exec(new String[]{"su", "-c",
             "dd if=" + device + " bs=4M count=" + blocks + " 2>/dev/null"});
         p.getOutputStream().close();
+        long remaining = bytes;
         try (InputStream in = p.getInputStream()) {
             byte[] buf = new byte[1024 * 1024];
-            long remaining = bytes;
             int n;
             while (remaining > 0 && (n = in.read(buf, 0, (int) Math.min(buf.length, remaining))) > 0) {
                 md.update(buf, 0, n);
@@ -65,6 +65,7 @@ public final class RootRunner {
         }
         int exit = p.waitFor();
         if (exit != 0) throw new IOException("dd hash exited " + exit);
+        if (remaining != 0) throw new IOException("dd hash short read: " + remaining + " bytes missing");
         byte[] digest = md.digest();
         StringBuilder sb = new StringBuilder(digest.length * 2);
         for (byte b : digest) sb.append(String.format("%02x", b));

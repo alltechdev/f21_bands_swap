@@ -24,7 +24,8 @@ public final class MainActivity extends Activity {
     private static final String TAG = "F21Bands";
     private static final int REQ_PICK = 100;
 
-    private TextView statusRoot, statusRegion, statusBlob;
+    private TextView statusDevice, statusRoot, statusRegion, statusBlob;
+    private DeviceDetector.Model deviceModel = DeviceDetector.Model.UNKNOWN;
     private LinearLayout cardGate, cardAction, cardError;
     private TextView gateExplain, dlStatus, manualUrl, errorMsg;
     private ProgressBar dlProgress;
@@ -52,6 +53,9 @@ public final class MainActivity extends Activity {
         super.onCreate(saved);
         setContentView(R.layout.activity_main);
 
+        statusDevice = findViewById(R.id.status_device);
+        deviceModel = DeviceDetector.detect();
+        statusDevice.setText(getString(R.string.status_device, DeviceDetector.label(deviceModel)));
         statusRoot   = findViewById(R.id.status_root);
         statusRegion = findViewById(R.id.status_region);
         statusBlob   = findViewById(R.id.status_blob);
@@ -125,7 +129,7 @@ public final class MainActivity extends Activity {
                 String detected;
                 String detectErr = null;
                 try {
-                    detected = r ? RegionDetector.detect() : Constants.REGION_UNKNOWN;
+                    detected = r && deviceModel != DeviceDetector.Model.UNKNOWN ? RegionDetector.detect() : Constants.REGION_UNKNOWN;
                 } catch (Exception e) {
                     Log.e(TAG, "region detection failed", e);
                     detected = Constants.REGION_UNKNOWN;
@@ -135,7 +139,8 @@ public final class MainActivity extends Activity {
                 final String err = detectErr;
                 cleanupStaleBlob(region);
                 String target = RegionDetector.otherRegion(region);
-                if (target == null && r && Constants.REGION_UNKNOWN.equals(region)) {
+                if (target == null && r && deviceModel != DeviceDetector.Model.UNKNOWN
+                        && Constants.REGION_UNKNOWN.equals(region)) {
                     // Live bands unrecognised, but the user picked a target via the override.
                     target = overrideTarget;
                 }
@@ -214,8 +219,20 @@ public final class MainActivity extends Activity {
         cardAction.setVisibility(View.GONE);
         cardError.setVisibility(View.GONE);
 
+        if (deviceModel == DeviceDetector.Model.UNKNOWN) {
+            errorMsg.setText(R.string.err_unknown_device);
+            btnOverride.setVisibility(View.GONE);
+            cardError.setVisibility(View.VISIBLE);
+            return;
+        }
         if (!rooted) {
             errorMsg.setText(R.string.err_no_root);
+            btnOverride.setVisibility(View.GONE);
+            cardError.setVisibility(View.VISIBLE);
+            return;
+        }
+        if (Constants.isM5() && Constants.REGION_US.equals(currentRegion)) {
+            errorMsg.setText(R.string.m5_already_us);
             btnOverride.setVisibility(View.GONE);
             cardError.setVisibility(View.VISIBLE);
             return;
@@ -223,7 +240,7 @@ public final class MainActivity extends Activity {
         if (Constants.REGION_UNKNOWN.equals(currentRegion) && otherRegion == null) {
             errorMsg.setText(detectError != null
                 ? getString(R.string.err_detect_failed, detectError)
-                : getString(R.string.err_unknown_region));
+                : getString(Constants.isM5() ? R.string.m5_unknown_region : R.string.err_unknown_region));
             btnOverride.setVisibility(View.VISIBLE);
             cardError.setVisibility(View.VISIBLE);
             return;
@@ -231,7 +248,7 @@ public final class MainActivity extends Activity {
 
         if (!blobReady) {
             // Gating screen.
-            gateExplain.setText(getString(R.string.gate_explain,
+            gateExplain.setText(getString(Constants.isM5() ? R.string.m5_gate_explain : R.string.gate_explain,
                 Constants.prettyRegion(currentRegion),
                 Constants.prettyRegion(otherRegion)));
             manualUrl.setText(Constants.urlForRegion(otherRegion));
@@ -249,7 +266,7 @@ public final class MainActivity extends Activity {
     private void confirmOverride() {
         new AlertDialog.Builder(this)
             .setTitle(R.string.override_title)
-            .setMessage(R.string.override_warn)
+            .setMessage(Constants.isM5() ? R.string.m5_override_warn : R.string.override_warn)
             .setPositiveButton(R.string.btn_override_confirm, new DialogInterface.OnClickListener() {
                 @Override public void onClick(DialogInterface d, int w) { chooseOverrideTarget(); }
             })
@@ -258,7 +275,9 @@ public final class MainActivity extends Activity {
     }
 
     private void chooseOverrideTarget() {
-        final String[] regions = { Constants.REGION_US, Constants.REGION_STOCK };
+        final String[] regions = Constants.isM5()
+            ? new String[] { Constants.REGION_US }
+            : new String[] { Constants.REGION_US, Constants.REGION_STOCK };
         String[] labels = new String[regions.length];
         for (int i = 0; i < regions.length; i++) {
             labels[i] = getString(R.string.override_item, Constants.prettyRegion(regions[i]));
@@ -279,6 +298,7 @@ public final class MainActivity extends Activity {
      * bands_unknown.tar.xz.
      */
     private void applyOverride(String target) {
+        if (!Constants.supportsTarget(target)) return;
         overrideTarget = target;
         otherRegion = target;
         File f = BlobLoader.blobFile(this, target);

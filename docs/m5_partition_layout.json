@@ -1,0 +1,46 @@
+{
+  "device": "Tiq M5",
+  "source": "mtkclient printgpt on connected M5, 2026-10-14",
+  "active_slot_before_reboot": "_a",
+  "partitions": [
+    {
+      "name": "md1img_a",
+      "offset_bytes": 293601280,
+      "size_bytes": 104857600,
+      "seek_4k": 71680,
+      "count_4k": 25600
+    },
+    {
+      "name": "nvcfg",
+      "offset_bytes": 23625728,
+      "size_bytes": 33554432,
+      "seek_4k": 5768,
+      "count_4k": 8192
+    },
+    {
+      "name": "nvdata",
+      "offset_bytes": 57180160,
+      "size_bytes": 67108864,
+      "seek_4k": 13960,
+      "count_4k": 16384
+    },
+    {
+      "name": "nvram",
+      "offset_bytes": 214958080,
+      "size_bytes": 67108864,
+      "seek_4k": 52480,
+      "count_4k": 16384
+    },
+    {
+      "name": "md1img_b",
+      "offset_bytes": 570425344,
+      "size_bytes": 104857600,
+      "seek_4k": 139264,
+      "count_4k": 25600
+    }
+  ],
+  "notes": [
+    "The four slot-a band partition offsets and capacities match the existing F21 constants.",
+    "Partition layout alone does not verify the live eMMC unlock and flashing procedure on M5."
+  ]
+}

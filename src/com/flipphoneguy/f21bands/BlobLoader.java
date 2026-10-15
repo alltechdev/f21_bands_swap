@@ -41,11 +41,16 @@ public final class BlobLoader {
         return new File(ctx.getFilesDir(), Constants.blobFileNameForRegion(region));
     }
 
+    private static void requireTarget(String region) throws IOException {
+        if (!Constants.supportsTarget(region)) throw new IOException("Unsupported device or target region");
+    }
+
     private static File partFile(Context ctx, String region) {
         return new File(ctx.getFilesDir(), Constants.blobFileNameForRegion(region) + ".part");
     }
 
     public static File download(Context ctx, String region, ProgressListener listener) throws IOException {
+        requireTarget(region);
         File outFile = blobFile(ctx, region);
         File tmp = partFile(ctx, region);
         try {
@@ -59,6 +64,7 @@ public final class BlobLoader {
     }
 
     public static File importFromUri(Context ctx, Uri src, String region) throws IOException {
+        requireTarget(region);
         File outFile = blobFile(ctx, region);
         File tmp = partFile(ctx, region);
         try {
@@ -138,6 +144,7 @@ public final class BlobLoader {
             @Override public void write(int b) { md.update((byte) b); }
             @Override public void write(byte[] b, int off, int len) { md.update(b, off, len); }
         };
+        int next = 0;
         boolean[] seen = new boolean[Constants.PARTITION_FILES.length];
         try (InputStream raw = new BufferedInputStream(new FileInputStream(blob));
              InputStream xz = new XZInputStream(raw)) {
@@ -149,6 +156,7 @@ public final class BlobLoader {
                     TarStream.copyBody(xz, null, e.size);
                     continue;
                 }
+                if (idx != next++) throw new IOException("archive entries out of canonical order at " + e.name);
                 if (seen[idx]) throw new IOException("archive has two copies of " + e.name);
                 if (e.size != Constants.PARTITION_SIZES[idx]) {
                     throw new IOException(e.name + " is " + e.size + " bytes, expected "
@@ -162,9 +170,9 @@ public final class BlobLoader {
             if (!seen[i]) throw new IOException("archive has no " + Constants.PARTITION_FILES[i]);
         }
         String h = hex(md.digest());
-        if (h.equalsIgnoreCase(Constants.US_MD1IMG_SHA256)) return Constants.REGION_US;
-        if (h.equalsIgnoreCase(Constants.STOCK_MD1IMG_SHA256)) return Constants.REGION_STOCK;
-        throw new IOException(Constants.PARTITION_FILES[MD1IMG] + " matches neither US nor stock bands");
+        String region = Constants.regionForHash(h);
+        if (!Constants.REGION_UNKNOWN.equals(region)) return region;
+        throw new IOException("Modem hash does not match a supported bundle for this device");
     }
 
     private static File finalize(File tmp, File outFile) throws IOException {

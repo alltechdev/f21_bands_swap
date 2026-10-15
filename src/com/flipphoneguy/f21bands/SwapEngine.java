@@ -62,9 +62,26 @@ public final class SwapEngine {
                             boolean skipBackup, ProgressListener listener)
             throws IOException, InterruptedException {
 
+        if (!Constants.supportsTarget(targetRegion)) {
+            throw new IOException("Unsupported device or target region");
+        }
+        if (Constants.isM5()) {
+            RootRunner.Result slot = RootRunner.run("getprop ro.boot.slot_suffix");
+            if (slot.exit != 0 || !"_a".equals(slot.stdout.trim())) {
+                throw new IOException("M5 flashing currently requires active slot _a");
+            }
+            if (Constants.REGION_US.equals(RegionDetector.detect())) {
+                throw new IOException("M5 is already on USA bands; reverse support is not available yet");
+            }
+        }
         File loadedBlob = BlobLoader.blobFile(ctx, targetRegion);
         if (!loadedBlob.isFile()) {
             throw new IOException("Loaded blob missing: " + loadedBlob.getName());
+        }
+
+        // Revalidate before backup, unlock, or writes, including model-specific hash.
+        if (!targetRegion.equals(BlobLoader.validate(loadedBlob))) {
+            throw new IOException("Loaded blob does not match target region");
         }
 
         if (skipBackup) {
