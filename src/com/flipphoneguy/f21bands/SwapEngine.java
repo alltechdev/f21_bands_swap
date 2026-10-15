@@ -70,9 +70,6 @@ public final class SwapEngine {
             if (slot.exit != 0 || !"_a".equals(slot.stdout.trim())) {
                 throw new IOException("M5 flashing currently requires active slot _a");
             }
-            if (Constants.REGION_US.equals(RegionDetector.detect())) {
-                throw new IOException("M5 is already on USA bands; reverse support is not available yet");
-            }
         }
         File loadedBlob = BlobLoader.blobFile(ctx, targetRegion);
         if (!loadedBlob.isFile()) {

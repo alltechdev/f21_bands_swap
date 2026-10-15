@@ -30,8 +30,7 @@ public final class InfoActivity extends Activity {
         TextView usUrl    = findViewById(R.id.info_url_us);
         TextView stockUrl = findViewById(R.id.info_url_stock);
         usUrl.setText(Constants.urlForRegion(Constants.REGION_US));
-        stockUrl.setText(Constants.isM5() ? getString(R.string.m5_reverse_unavailable)
-            : Constants.urlForRegion(Constants.REGION_STOCK));
+        stockUrl.setText(Constants.urlForRegion(Constants.REGION_STOCK));
 
         // Buttons-body uses inline HTML for bold labels.
         TextView buttonsBody = findViewById(R.id.info_buttons_body);

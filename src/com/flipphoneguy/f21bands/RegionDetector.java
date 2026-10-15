@@ -21,7 +21,6 @@ public final class RegionDetector {
     }
 
     public static String otherRegion(String current) {
-        if (Constants.isM5()) return null; // One-way support; unknown source requires confirmation.
         if (Constants.REGION_US.equals(current)) return Constants.REGION_STOCK;
         if (Constants.REGION_STOCK.equals(current)) return Constants.REGION_US;
         return null;

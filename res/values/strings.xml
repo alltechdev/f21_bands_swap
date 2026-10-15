@@ -7,6 +7,7 @@
     <string name="status_root_yes">root: yes</string>
     <string name="status_root_no">root: NO — app needs Magisk</string>
     <string name="status_region_us">current bands: US</string>
+    <string name="status_region_eu">current bands: EU</string>
     <string name="status_region_stock">current bands: stock</string>
     <string name="status_region_unknown">current bands: UNKNOWN — refusing to swap</string>
     <string name="status_blob_have">loaded: %1$s bands ready</string>
@@ -77,9 +78,9 @@
     <!-- Info screen -->
     <string name="info_title">F21 / M5 Bands — Info</string>
     <string name="info_compat_title">Compatibility</string>
-    <string name="info_compat_body">Rooted DuoQin F21 prior to v3, and Tiq M5 EU → USA (slot _a). M5 reverse support is not available yet; its backup is for manual recovery. Both use the existing Magisk su -mm flashing flow.\n\nv3 has a RED charging port and serial number prefix F21PMQC25 — running this app on v3 will SOFT-BRICK THE MODEM.\n\nIf you\'re not sure, don\'t use this app.</string>
+    <string name="info_compat_body">Rooted DuoQin F21 prior to v3, and Tiq M5 EU ↔ USA (slot _a). Both use the existing Magisk su -mm flashing flow.\n\nv3 has a RED charging port and serial number prefix F21PMQC25 — running this app on v3 will SOFT-BRICK THE MODEM.\n\nIf you\'re not sure, don\'t use this app.</string>
     <string name="info_buttons_title">What the buttons do</string>
-    <string name="info_buttons_body"><![CDATA[<b>Swap to &lt;target&gt; bands</b> — the safe path. Backs up your current bands to app private storage (~1–2 min), flashes the new bands, sysrq-reboots. On F21, the backup lets you swap back later without re-downloading. On M5, it is for manual recovery until reverse support is added. The backup also still has your old IMEI, bt and wifi mac addresses for the next time you swap.<br/><br/><b>Flash &lt;target&gt; — NO BACKUP</b> — the destructive path. Skips the backup step entirely and goes straight to unlock + flash + reboot. Saves a minute or two. If you want to return to the bands you had before, you have to re-download that blob.<br/><br/>Both paths - if this is the first flash (flashing from download) overwrite IMEI, BT MAC, and WiFi MAC with placeholder values — re-provision with the IMEI switcher app afterwards either way.]]></string>
+    <string name="info_buttons_body"><![CDATA[<b>Swap to &lt;target&gt; bands</b> — the safe path. Backs up your current bands to app private storage (~1–2 min), flashes the new bands, sysrq-reboots. The backup lets you swap back later without re-downloading. The backup also still has your old IMEI, bt and wifi mac addresses for the next time you swap.<br/><br/><b>Flash &lt;target&gt; — NO BACKUP</b> — the destructive path. Skips the backup step entirely and goes straight to unlock + flash + reboot. Saves a minute or two. If you want to return to the bands you had before, you have to re-download that blob.<br/><br/>Both paths - if this is the first flash (flashing from download) overwrite IMEI, BT MAC, and WiFi MAC with placeholder values — re-provision with the IMEI switcher app afterwards either way.]]></string>
     <string name="info_url_title">Manual download URLs</string>
     <string name="info_legal_title">Legal</string>
     <string name="info_legal_body">Modifying an IMEI is illegal in some jurisdictions. You are responsible for checking your local laws.</string>
@@ -121,12 +122,9 @@
     <string name="info_repo_label">App Repository</string>
     <string name="info_repo_url">https://github.com/flipphoneguy/f21_bands_swap</string>
     <string name="status_device">Device: %1$s</string>
-    <string name="m5_reverse_unavailable">M5 USA → EU is not available yet. Backups are retained for manual recovery.</string>
-    <string name="m5_already_us">M5 USA bands detected. USA → EU support is not available yet. Your existing backup is kept for manual recovery.</string>
-    <string name="m5_unknown_region">M5 detected, but the current modem does not match the USA reference. No EU reference hash is available yet. Confirm below only if this is the EU M5 you intend to convert to USA.</string>
-    <string name="m5_override_warn">Confirm this is an EU Tiq M5 you intend to convert to USA. Its current modem cannot yet be verified against an EU reference hash.
+    <string name="m5_unknown_region">M5 detected, but the current modem matches neither the EU nor USA reference. Confirm below only if this is a Tiq M5 you intend to swap.</string>
+    <string name="m5_override_warn">Confirm this is a Tiq M5 you intend to swap. Its current modem matches neither the known EU nor USA reference hash.
 
-Only EU → USA is supported. The backup option saves your current partitions for manual recovery; the app cannot restore them yet. Flashing overwrites modem and NV data, including device identifiers.</string>
-    <string name="m5_gate_explain">Load the M5 USA bundle to convert this phone to USA. The backup option preserves your current partitions for manual recovery. USA → EU is not available yet.</string>
+EU ↔ USA is supported. With unknown current bands, the backup option saves your current partitions for manual recovery; the app cannot identify that unknown backup for automatic restore. Flashing overwrites modem and NV data, including device identifiers.</string>
     <string name="err_unknown_device">Device model not recognized. Band swapping is disabled. Model detection requires F21 Pro or Tiq M5 Android identifiers.</string>
 </resources>

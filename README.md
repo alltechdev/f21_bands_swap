@@ -4,7 +4,7 @@ One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3
 
 ## Compatibility
 
-**F21 support is for rooted DuoQin F21 prior to v3.** For one-way Tiq M5 support on this branch, see below. v3 has a red charging port and serial number prefix `F21PMQC25`; running this on v3 will brick the modem (the app refuses to flash when the live bands match neither known hash; the override described under Recovery bypasses that check, so treat it accordingly). Magisk is required (the app needs root and `su -mm` for the MMC ioctls). If you're not sure which revision you have, do not use this app.
+**F21 support is for rooted DuoQin F21 prior to v3.** For Tiq M5 support on this branch, see below. v3 has a red charging port and serial number prefix `F21PMQC25`; running this on v3 will brick the modem (the app refuses to flash when the live bands match neither known hash; the override described under Recovery bypasses that check, so treat it accordingly). Magisk is required (the app needs root and `su -mm` for the MMC ioctls). If you're not sure which revision you have, do not use this app.
 
 ## M5 support (m5-support branch)
 
@@ -15,16 +15,18 @@ original hash-based detection. Conflicting identifiers remain blocked; unknown
 identifiers without a known F21 modem hash remain blocked. The connected M5 reports manufacturer `M5`, brand
 `alps`, model `M5`, device `k61v1_64_bsp`, and product `vnd_k61v1_64_bsp`.
 
-M5 supports **EU → USA only, with active slot `_a`**. No EU reference hash is
-available yet: an unrecognized modem is shown as unknown, and the existing
-override confirmation must be accepted to select USA. Once the USA modem is
-detected, the app offers no reverse target.
+M5 supports **EU ↔ USA, with active slot `_a`**. The supplied EU and USA
+modem hashes are recognized automatically and select the other region as the
+target, using the same region-selection logic as F21. An unrecognized modem
+still requires the existing override confirmation.
 
 The M5 uses the same backup, archive validation, eMMC unlock, streaming flash,
 flush, and reboot logic as F21. Both backup and no-backup buttons retain their
-existing behavior. The M5 backup is `bands_m5_unknown.tar.xz`; it is kept after
-conversion for manual recovery. Automatic reverse support will be added when
-the EU reference is supplied. F21 storage and download URLs remain unchanged.
+existing behavior. EU backups use `bands_m5_stock.tar.xz`, and USA backups use
+`bands_m5_us.tar.xz`. These are automatically available for the return swap,
+including the device identifiers saved in the backup. An overridden unknown
+modem uses `bands_m5_unknown.tar.xz`, for manual recovery only, as on F21.
+F21 storage and download URLs remain unchanged.
 
 The same **Magisk `su` / `su -mm` requirements** apply. An ADB-only privileged
 shell does not provide app root access. No private root command or credential
@@ -38,15 +40,17 @@ capacity. The three NV images are unchanged. The archive uses the same four
 entry names, order, and sizes as F21, retaining existing exact-size checks.
 The padded modem SHA-256 is
 `c4cee657969f9233e54777192f33297a45c6d456ad7663f277315f9b8cc3a971`.
+[`bands/m5/stock.tar.xz`](bands/m5/stock.tar.xz) contains the supplied EU
+partitions unchanged. The supplied full EU modem SHA-256 is
+`ea33734b18490bca7026755c22e05e3d1ce209f9137ae060c3ff3e9436230a52`.
 The measured layout is in [`docs/m5_partition_layout.json`](docs/m5_partition_layout.json).
 
 Archive import and download use the detected model’s hash, preventing F21/M5
 bundle confusion. Before flashing, the shared engine revalidates the entire
-archive and its canonical order; M5 also checks active slot and refuses an
-already-USA modem. A short modem read is an error, not an unknown hash.
+archive and its canonical order; M5 also checks the active slot. A short modem read is an error, not an unknown hash.
 
 After building, run `bash tests/run.sh` (set `ANDROID_JAR` if needed) for model
-classification, bundle isolation, one-way target, backup naming, and malformed
+classification, bundle isolation, bidirectional target, backup naming, and malformed
 archive checks. Tests use a JVM identity fixture and never access a phone.
 
 ## What it does

@@ -204,7 +204,7 @@ public final class MainActivity extends Activity {
         if (Constants.REGION_US.equals(currentRegion)) {
             statusRegion.setText(R.string.status_region_us);
         } else if (Constants.REGION_STOCK.equals(currentRegion)) {
-            statusRegion.setText(R.string.status_region_stock);
+            statusRegion.setText(Constants.isM5() ? R.string.status_region_eu : R.string.status_region_stock);
         } else if (otherRegion != null) {
             statusRegion.setText(getString(R.string.status_region_unknown_override,
                 Constants.prettyRegion(otherRegion)));
@@ -234,12 +234,6 @@ public final class MainActivity extends Activity {
             cardError.setVisibility(View.VISIBLE);
             return;
         }
-        if (Constants.isM5() && Constants.REGION_US.equals(currentRegion)) {
-            errorMsg.setText(R.string.m5_already_us);
-            btnOverride.setVisibility(View.GONE);
-            cardError.setVisibility(View.VISIBLE);
-            return;
-        }
         if (Constants.REGION_UNKNOWN.equals(currentRegion) && otherRegion == null) {
             errorMsg.setText(detectError != null
                 ? getString(R.string.err_detect_failed, detectError)
@@ -251,7 +245,7 @@ public final class MainActivity extends Activity {
 
         if (!blobReady) {
             // Gating screen.
-            gateExplain.setText(getString(Constants.isM5() ? R.string.m5_gate_explain : R.string.gate_explain,
+            gateExplain.setText(getString(R.string.gate_explain,
                 Constants.prettyRegion(currentRegion),
                 Constants.prettyRegion(otherRegion)));
             manualUrl.setText(Constants.urlForRegion(otherRegion));
@@ -278,9 +272,7 @@ public final class MainActivity extends Activity {
     }
 
     private void chooseOverrideTarget() {
-        final String[] regions = Constants.isM5()
-            ? new String[] { Constants.REGION_US }
-            : new String[] { Constants.REGION_US, Constants.REGION_STOCK };
+        final String[] regions = { Constants.REGION_US, Constants.REGION_STOCK };
         String[] labels = new String[regions.length];
         for (int i = 0; i < regions.length; i++) {
             labels[i] = getString(R.string.override_item, Constants.prettyRegion(regions[i]));
