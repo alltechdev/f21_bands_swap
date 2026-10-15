@@ -1,6 +1,6 @@
 # F21 Bands Swap
 
-One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3, MT6761). No fastboot, no recovery, no host PC, no per-power-cycle limit. Backs up the live region before flashing the target region, then sysrq-reboots the device with the new bands live.
+One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3, MT6761) and the TIQ Mini M5. No fastboot, no recovery, no host PC, no per-power-cycle limit. Backs up the live region before flashing the target region, then sysrq-reboots the device with the new bands live.
 
 ## Compatibility
 
