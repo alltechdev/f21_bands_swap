@@ -22,8 +22,8 @@ public final class M5SupportTest {
         check(Constants.blobFileNameForRegion("stock").equals("bands_m5_stock.tar.xz"), "EU backup name");
         check(RegionDetector.otherRegion("unknown") == null, "unknown requires override");
         check(Constants.blobFileNameForRegion("unknown").equals("bands_m5_unknown.tar.xz"), "separate backup");
-        check(Constants.urlForRegion("us").contains("/m5-support/bands/m5/"), "M5 download");
-        check(Constants.urlForRegion("stock").endsWith("/m5/stock.tar.xz"), "EU download");
+        check(Constants.urlForRegion("us").equals(Constants.DOWNLOAD_BASE + "m5/us.tar.xz"), "M5 upstream USA download");
+        check(Constants.urlForRegion("stock").equals(Constants.DOWNLOAD_BASE + "m5/stock.tar.xz"), "M5 upstream EU download");
         Build.MANUFACTURER = "Qin"; Build.BRAND = "Qin"; Build.MODEL = "F21 Pro";
         Build.DEVICE = "f21pro"; Build.PRODUCT = "f21pro";
         check(Constants.REGION_US.equals(BlobLoader.validate(new File("bands/us.tar.xz"))), "F21 USA unchanged");

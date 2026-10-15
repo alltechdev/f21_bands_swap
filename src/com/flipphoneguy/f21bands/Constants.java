@@ -97,8 +97,7 @@ public final class Constants {
 
     public static String urlForRegion(String region) {
         if (isM5()) {
-            return "https://raw.githubusercontent.com/alltechdev/f21_bands_swap/m5-support/bands/m5/"
-                + region + ".tar.xz";
+            return DOWNLOAD_BASE + "m5/" + region + ".tar.xz";
         }
         return DOWNLOAD_BASE + region + ".tar.xz";
     }
