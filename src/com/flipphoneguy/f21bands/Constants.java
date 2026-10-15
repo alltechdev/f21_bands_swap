@@ -67,17 +67,43 @@ public final class Constants {
     public static final String DOWNLOAD_BASE =
         "https://raw.githubusercontent.com/flipphoneguy/f21_bands_swap/main/bands/";
 
+    public static final String M5_US_MD1IMG_SHA256 =
+        "c4cee657969f9233e54777192f33297a45c6d456ad7663f277315f9b8cc3a971";
+
+    public static final String M5_EU_MD1IMG_SHA256 =
+        "ea33734b18490bca7026755c22e05e3d1ce209f9137ae060c3ff3e9436230a52";
+
+    public static boolean isM5() {
+        return DeviceDetector.detect() == DeviceDetector.Model.M5;
+    }
+
+    public static String regionForHash(String hash) {
+        if (isM5()) {
+            if (M5_US_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_US;
+            if (M5_EU_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_STOCK;
+            return REGION_UNKNOWN;
+        }
+        // Non-M5 devices retain the original F21 hash/override flow, regardless
+        // of Android model identifiers (including custom ROMs).
+        if (US_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_US;
+        if (STOCK_MD1IMG_SHA256.equalsIgnoreCase(hash)) return REGION_STOCK;
+        return REGION_UNKNOWN;
+    }
+
     public static String urlForRegion(String region) {
+        if (isM5()) {
+            return DOWNLOAD_BASE + "m5/" + region + ".tar.xz";
+        }
         return DOWNLOAD_BASE + region + ".tar.xz";
     }
 
     public static String blobFileNameForRegion(String region) {
-        return "bands_" + region + ".tar.xz";
+        return "bands_" + (isM5() ? "m5_" : "") + region + ".tar.xz";
     }
 
     public static String prettyRegion(String region) {
         if (REGION_US.equals(region)) return "US";
-        if (REGION_STOCK.equals(region)) return "stock";
+        if (REGION_STOCK.equals(region)) return isM5() ? "EU" : "stock";
         return "unknown";
     }
 }

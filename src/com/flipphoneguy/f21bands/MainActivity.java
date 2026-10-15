@@ -52,6 +52,9 @@ public final class MainActivity extends Activity {
         super.onCreate(saved);
         setContentView(R.layout.activity_main);
 
+        TextView statusDevice = findViewById(R.id.status_device);
+        statusDevice.setText(getString(R.string.status_device,
+            DeviceDetector.label(DeviceDetector.detect())));
         statusRoot   = findViewById(R.id.status_root);
         statusRegion = findViewById(R.id.status_region);
         statusBlob   = findViewById(R.id.status_blob);
@@ -196,7 +199,7 @@ public final class MainActivity extends Activity {
         if (Constants.REGION_US.equals(currentRegion)) {
             statusRegion.setText(R.string.status_region_us);
         } else if (Constants.REGION_STOCK.equals(currentRegion)) {
-            statusRegion.setText(R.string.status_region_stock);
+            statusRegion.setText(Constants.isM5() ? R.string.status_region_eu : R.string.status_region_stock);
         } else if (otherRegion != null) {
             statusRegion.setText(getString(R.string.status_region_unknown_override,
                 Constants.prettyRegion(otherRegion)));
@@ -223,7 +226,7 @@ public final class MainActivity extends Activity {
         if (Constants.REGION_UNKNOWN.equals(currentRegion) && otherRegion == null) {
             errorMsg.setText(detectError != null
                 ? getString(R.string.err_detect_failed, detectError)
-                : getString(R.string.err_unknown_region));
+                : getString(Constants.isM5() ? R.string.m5_unknown_region : R.string.err_unknown_region));
             btnOverride.setVisibility(View.VISIBLE);
             cardError.setVisibility(View.VISIBLE);
             return;
@@ -249,7 +252,7 @@ public final class MainActivity extends Activity {
     private void confirmOverride() {
         new AlertDialog.Builder(this)
             .setTitle(R.string.override_title)
-            .setMessage(R.string.override_warn)
+            .setMessage(Constants.isM5() ? R.string.m5_override_warn : R.string.override_warn)
             .setPositiveButton(R.string.btn_override_confirm, new DialogInterface.OnClickListener() {
                 @Override public void onClick(DialogInterface d, int w) { chooseOverrideTarget(); }
             })

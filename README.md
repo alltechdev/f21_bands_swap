@@ -1,10 +1,16 @@
 # F21 Bands Swap
 
-One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3, MT6761). No fastboot, no recovery, no host PC, no per-power-cycle limit. Backs up the live region before flashing the target region, then sysrq-reboots the device with the new bands live.
+One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3, MT6761) and the TIQ Mini M5. No fastboot, no recovery, no host PC, no per-power-cycle limit. Backs up the live region before flashing the target region, then sysrq-reboots the device with the new bands live.
 
 ## Compatibility
 
+### DuoQin F21 Pro
+
 **EXCLUSIVELY for rooted DuoQin F21 prior to v3.** v3 has a red charging port and serial number prefix `F21PMQC25`; running this on v3 will brick the modem (the app refuses to flash when the live bands match neither known hash; the override described under Recovery bypasses that check, so treat it accordingly). Magisk is required (the app needs root and `su -mm` for the MMC ioctls). If you're not sure which revision you have, do not use this app.
+
+### Tiq M5
+
+Supports **EU ↔ USA** with Magisk root. The app detects the model and current region, selects the matching bundle, and uses the same backup and flashing procedure as F21.
 
 ## What it does
 
@@ -23,6 +29,8 @@ The on-device live-flash flow this app ships was reverse-engineered, validated e
 
 Download and install the [latest release](https://github.com/flipphoneguy/f21_bands_swap/releases/latest) from the [releases](https://github.com/flipphoneguy/f21_bands_swap/releases) below.
 
+M5 manual downloads: [USA bundle](bands/m5/us.tar.xz) · [EU bundle](bands/m5/stock.tar.xz).
+
 Open the app, accept the root prompt, follow the on-screen flow:
 
 1. Tap **Download** to fetch the target region's blob (~20 MB) into app private storage. Or tap **Pick file** if you already have it.
@@ -31,6 +39,8 @@ Open the app, accept the root prompt, follow the on-screen flow:
 4. After the reboot, re-provision IMEI / BT MAC / WiFi MAC using [mtk-imei-switcheroo-app](https://github.com/flipphoneguy/mtk-imei-switcheroo-app) — the freshly-flashed nvram contains placeholder values, not your phone's identifiers. This only needs to be done once. Future swaps will flash the backup which contains your phone's unique identifiers. (TIP: If you install and launce the IMEI switcheroo app before swapping, your identifiers will be saved in the app to easily re-use)
 
 ## Run from Termux (no APK, no host PC)
+
+**F21 only:** this script downloads F21 bundles. Use the app for M5.
 
 If you'd rather skip the APK and run the swap from an on-device Termux shell, [`tools/termux_swap.sh`](tools/termux_swap.sh) is a one-shot wrapper that downloads the target region's blob, `mmc_probe`, and `tools/swap.sh`, stages them via `su`, and invokes the same flash procedure the app uses. From Termux:
 
@@ -48,12 +58,15 @@ The pre-flash backup blob lives at `/data/data/com.flipphoneguy.f21bands/files/b
 
 **Unknown bands override.** If the live `md1img_a` matches neither the US nor the stock hash, the app shows a warning instead of the swap buttons. The warning has an override: confirm it, pick US or stock, and the normal download / pick / swap flow runs for that target. The hash is the app's only compatibility check, so the override removes the v3 protection; use it only when you are sure of the hardware. A with-backup swap in that state saves the current bands as `bands_unknown.tar.xz`, which the app cannot flash back itself but which you can restore manually as above.
 
+**M5 backup filenames:** `bands_m5_us.tar.xz` (USA), `bands_m5_stock.tar.xz` (EU), or `bands_m5_unknown.tar.xz` (unknown bands). They use the same directory and recovery procedure described above.
+
 ## How it actually works
 
 The full reverse-engineering trail, including every wrong turn, is in:
 
 - [`docs/live_band_swap_re.md`](docs/live_band_swap_re.md) — original investigation. Established that naive `dd` silently no-ops on the band-related partitions while Android is running, and that mounted-ext4 pagecache coherency Frankensteins anything that does land. Concluded the wrong thing ("live swap is fundamentally not reachable") for the right reasons.
 - [`docs/live_band_swap_solution.md`](docs/live_band_swap_solution.md) — the solution that supersedes the above. CMD0 reinit + USR_WP unlock + CMD29 cascade + sysrq-b. Empirically tested over four consecutive bidirectional swaps with no power-cycle.
+- [`docs/m5_partition_layout.md`](docs/m5_partition_layout.md) — M5 partition layout, bundle preparation, and testing results.
 
 ## Tooling
 
@@ -74,6 +87,10 @@ Requires `aapt2`, `ecj`, `d8`, `apksigner`, `zip` (e.g. `pkg install aapt2 ecj d
 On a desktop Linux machine the same script works with an Android SDK (build-tools + a platform) and either a JDK or Android Studio's bundled JBR: it finds the SDK via `ANDROID_SDK_ROOT`, `ANDROID_HOME`, or `~/Android/Sdk`, uses the platform `android.jar` in place of both Termux jars, and falls back from `ecj` to `javac`. `ANDROID_JAR`, `FRAMEWORK_RES`, and `KEYSTORE` can be overridden in the environment. The first run downloads `xz-1.9.jar` from Maven Central into `libs/`.
 
 For more on build, check out my [app building template](https://github.com/flipphoneguy/app-template)
+
+### Tests
+
+After building, run `bash tests/run.sh` with `javac` available. Set `ANDROID_JAR` to your SDK’s `android.jar` if needed. These tests do not access a phone.
 
 ## Legal
 

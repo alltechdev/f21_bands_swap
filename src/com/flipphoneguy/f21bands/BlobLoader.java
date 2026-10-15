@@ -162,8 +162,8 @@ public final class BlobLoader {
             if (!seen[i]) throw new IOException("archive has no " + Constants.PARTITION_FILES[i]);
         }
         String h = hex(md.digest());
-        if (h.equalsIgnoreCase(Constants.US_MD1IMG_SHA256)) return Constants.REGION_US;
-        if (h.equalsIgnoreCase(Constants.STOCK_MD1IMG_SHA256)) return Constants.REGION_STOCK;
+        String region = Constants.regionForHash(h);
+        if (!Constants.REGION_UNKNOWN.equals(region)) return region;
         throw new IOException(Constants.PARTITION_FILES[MD1IMG] + " matches neither US nor stock bands");
     }
 
