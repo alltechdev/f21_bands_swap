@@ -62,12 +62,6 @@ public final class SwapEngine {
                             boolean skipBackup, ProgressListener listener)
             throws IOException, InterruptedException {
 
-        if (Constants.isM5()) {
-            RootRunner.Result slot = RootRunner.run("getprop ro.boot.slot_suffix");
-            if (slot.exit != 0 || !"_a".equals(slot.stdout.trim())) {
-                throw new IOException("M5 flashing currently requires active slot _a");
-            }
-        }
         File loadedBlob = BlobLoader.blobFile(ctx, targetRegion);
         if (!loadedBlob.isFile()) {
             throw new IOException("Loaded blob missing: " + loadedBlob.getName());

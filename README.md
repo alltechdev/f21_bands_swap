@@ -8,7 +8,7 @@ One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3
 
 ## Tiq M5
 
-The app also supports **Tiq M5 EU ↔ USA** with Magisk root and active slot `_a`. It automatically selects the device-specific bands and uses the same backup and flashing flow as F21. Both directions have been successfully user-tested on M5.
+The app also supports **Tiq M5 EU ↔ USA** with Magisk root. It automatically selects the device-specific bands and uses the same backup and flashing flow as F21. Both directions have been successfully user-tested on M5.
 
 M5 bundles: [USA](bands/m5/us.tar.xz) · [EU](bands/m5/stock.tar.xz). Partition layout and bundle details: [technical reference](docs/m5_partition_layout.json).
 

@@ -78,7 +78,7 @@
     <!-- Info screen -->
     <string name="info_title">F21 / M5 Bands — Info</string>
     <string name="info_compat_title">Compatibility</string>
-    <string name="info_compat_body">Rooted DuoQin F21 prior to v3, and Tiq M5 EU ↔ USA (slot _a). Both use the existing Magisk su -mm flashing flow.\n\nv3 has a RED charging port and serial number prefix F21PMQC25 — running this app on v3 will SOFT-BRICK THE MODEM.\n\nIf you\'re not sure, don\'t use this app.</string>
+    <string name="info_compat_body">Rooted DuoQin F21 prior to v3, and Tiq M5 EU ↔ USA. Both use the existing Magisk su -mm flashing flow.\n\nv3 has a RED charging port and serial number prefix F21PMQC25 — running this app on v3 will SOFT-BRICK THE MODEM.\n\nIf you\'re not sure, don\'t use this app.</string>
     <string name="info_buttons_title">What the buttons do</string>
     <string name="info_buttons_body"><![CDATA[<b>Swap to &lt;target&gt; bands</b> — the safe path. Backs up your current bands to app private storage (~1–2 min), flashes the new bands, sysrq-reboots. The backup lets you swap back later without re-downloading. The backup also still has your old IMEI, bt and wifi mac addresses for the next time you swap.<br/><br/><b>Flash &lt;target&gt; — NO BACKUP</b> — the destructive path. Skips the backup step entirely and goes straight to unlock + flash + reboot. Saves a minute or two. If you want to return to the bands you had before, you have to re-download that blob.<br/><br/>Both paths - if this is the first flash (flashing from download) overwrite IMEI, BT MAC, and WiFi MAC with placeholder values — re-provision with the IMEI switcher app afterwards either way.]]></string>
     <string name="info_url_title">Manual download URLs</string>
