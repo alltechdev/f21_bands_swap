@@ -4,13 +4,13 @@ One-tap on-device band swap (US ↔ stock) for the rooted DuoQin F21 Pro (pre-v3
 
 ## Compatibility
 
+### DuoQin F21 Pro
+
 **EXCLUSIVELY for rooted DuoQin F21 prior to v3.** v3 has a red charging port and serial number prefix `F21PMQC25`; running this on v3 will brick the modem (the app refuses to flash when the live bands match neither known hash; the override described under Recovery bypasses that check, so treat it accordingly). Magisk is required (the app needs root and `su -mm` for the MMC ioctls). If you're not sure which revision you have, do not use this app.
 
-## Tiq M5
+### Tiq M5
 
-The app also supports **Tiq M5 EU ↔ USA** with Magisk root. It automatically selects the device-specific bands and uses the same backup and flashing flow as F21. Both directions have been successfully user-tested on M5.
-
-M5 bundles: [USA](bands/m5/us.tar.xz) · [EU](bands/m5/stock.tar.xz). Partition layout and bundle details: [technical reference](docs/m5_partition_layout.md).
+Supports **EU ↔ USA** with Magisk root. The app detects the model and current region, selects the matching bundle, and uses the same backup and flashing procedure as F21. Both directions have been successfully user-tested.
 
 ## What it does
 
@@ -29,6 +29,8 @@ The on-device live-flash flow this app ships was reverse-engineered, validated e
 
 Download and install the [latest release](https://github.com/flipphoneguy/f21_bands_swap/releases/latest) from the [releases](https://github.com/flipphoneguy/f21_bands_swap/releases) below.
 
+M5 manual downloads: [USA bundle](bands/m5/us.tar.xz) · [EU bundle](bands/m5/stock.tar.xz).
+
 Open the app, accept the root prompt, follow the on-screen flow:
 
 1. Tap **Download** to fetch the target region's blob (~20 MB) into app private storage. Or tap **Pick file** if you already have it.
@@ -38,7 +40,7 @@ Open the app, accept the root prompt, follow the on-screen flow:
 
 ## Run from Termux (no APK, no host PC)
 
-**F21 only:** the Termux wrapper downloads F21 bundles. Use the app for M5.
+**F21 only:** this script downloads F21 bundles. Use the app for M5.
 
 If you'd rather skip the APK and run the swap from an on-device Termux shell, [`tools/termux_swap.sh`](tools/termux_swap.sh) is a one-shot wrapper that downloads the target region's blob, `mmc_probe`, and `tools/swap.sh`, stages them via `su`, and invokes the same flash procedure the app uses. From Termux:
 
@@ -52,11 +54,11 @@ Substitute `stock` for `us` to flash the other direction. The script auto-instal
 
 ## Recovery
 
-**M5 backups:** stored in the same app-private directory below as `bands_m5_us.tar.xz` (USA) or `bands_m5_stock.tar.xz` (EU). Unknown-band backups use `bands_m5_unknown.tar.xz` and require manual recovery.
-
 The pre-flash backup blob lives at `/data/data/com.flipphoneguy.f21bands/files/bands_<region>.tar.xz`. If a flash fails or you want to revert manually, pull it, `tar -xJf`, and manually flash the four `.bin` files to their partitions from a computer (fastboot or recovery shell). The in-app "swap back" path runs the same flow with the previously-backed-up region as the new target.
 
 **Unknown bands override.** If the live `md1img_a` matches neither the US nor the stock hash, the app shows a warning instead of the swap buttons. The warning has an override: confirm it, pick US or stock, and the normal download / pick / swap flow runs for that target. The hash is the app's only compatibility check, so the override removes the v3 protection; use it only when you are sure of the hardware. A with-backup swap in that state saves the current bands as `bands_unknown.tar.xz`, which the app cannot flash back itself but which you can restore manually as above.
+
+**M5 backup filenames:** `bands_m5_us.tar.xz` (USA), `bands_m5_stock.tar.xz` (EU), or `bands_m5_unknown.tar.xz` (unknown bands). They use the same directory and recovery procedure described above.
 
 ## How it actually works
 
@@ -64,6 +66,7 @@ The full reverse-engineering trail, including every wrong turn, is in:
 
 - [`docs/live_band_swap_re.md`](docs/live_band_swap_re.md) — original investigation. Established that naive `dd` silently no-ops on the band-related partitions while Android is running, and that mounted-ext4 pagecache coherency Frankensteins anything that does land. Concluded the wrong thing ("live swap is fundamentally not reachable") for the right reasons.
 - [`docs/live_band_swap_solution.md`](docs/live_band_swap_solution.md) — the solution that supersedes the above. CMD0 reinit + USR_WP unlock + CMD29 cascade + sysrq-b. Empirically tested over four consecutive bidirectional swaps with no power-cycle.
+- [`docs/m5_partition_layout.md`](docs/m5_partition_layout.md) — M5 partition layout, bundle preparation, and testing results.
 
 ## Tooling
 
@@ -85,7 +88,9 @@ On a desktop Linux machine the same script works with an Android SDK (build-tool
 
 For more on build, check out my [app building template](https://github.com/flipphoneguy/app-template)
 
-After building, run `bash tests/run.sh` to check device detection, bundle validation, and region selection. Set `ANDROID_JAR` if your SDK is not at the default test path. Tests require `javac` and do not access a phone.
+### Tests
+
+After building, run `bash tests/run.sh` with `javac` available. Set `ANDROID_JAR` to your SDK’s `android.jar` if needed. These tests do not access a phone.
 
 ## Legal
 
