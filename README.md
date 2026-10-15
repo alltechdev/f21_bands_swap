@@ -30,8 +30,12 @@ F21 storage and download URLs remain unchanged.
 
 The same **Magisk `su` / `su -mm` requirements** apply. An ADB-only privileged
 shell does not provide app root access. No private root command or credential
-is embedded in this app. The M5 live-flash procedure has not yet been tested
-with this app; only its model identifiers and partition layout were read.
+is embedded in this app.
+
+**Hardware validation:** on 2026-10-15, the user reported successful flashing
+with this app on a Tiq M5 in both directions: EU → USA and USA → EU. This
+confirms successful live flashing on the tested device and setup; it does not
+establish compatibility with every M5 firmware or root configuration.
 
 [`bands/m5/us.tar.xz`](bands/m5/us.tar.xz) was prepared from the supplied USA
 `tiqstuffs2.zip`. The original 41,252,016-byte `md1img-verified.img` is renamed

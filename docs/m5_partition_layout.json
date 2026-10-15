@@ -41,6 +41,6 @@
   ],
   "notes": [
     "The four slot-a band partition offsets and capacities match the existing F21 constants.",
-    "Partition layout alone does not verify the live eMMC unlock and flashing procedure on M5."
+    "On 2026-10-15, the user reported successful live flashing with this app on a Tiq M5 in both directions: EU to USA and USA to EU. This validation applies to the tested device and setup."
   ]
 }
